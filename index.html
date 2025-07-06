@@ -307,20 +307,20 @@
         // --- INICIO DE CONFIGURACIÓN DE FIREBASE ---
         // ¡¡¡IMPORTANTE!!! REEMPLAZA ESTO CON TUS PROPIAS CREDENCIALES DE FIREBASE
         const firebaseConfig = {
-            apiKey: "AIzaSyCSnkg03bPx4_SCcHUZvKPMMWyNrLrnLvE",
-            authDomain: "calendario-710a3.firebaseapp.com",
-            projectId: "calendario-710a3",
-            storageBucket: "calendario-710a3.firebasestorage.app",
-            messagingSenderId: "68854839683",
-            appId: "1:68854839683:web:38f0a40a80f81e9bd39eb6"
-        }; 
+          apiKey: "AIzaSyCSnkg03bPx4_SCcHUZvKPMMWyNrLrnLvE",
+          authDomain: "calendario-710a3.firebaseapp.com",
+          projectId: "calendario-710a3",
+          storageBucket: "calendario-710a3.appspot.com",
+          messagingSenderId: "68854839683",
+          appId: "1:68854839683:web:38f0a40a80f81e9bd39eb6"
+        };
+        // --- FIN DE CONFIGURACIÓN DE FIREBASE ---
 
         // Inicializar Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         let currentUser = null; // Variable para guardar el usuario actual
-        // --- FIN DE CONFIGURACIÓN DE FIREBASE ---
 
         const initializeAppLogic = () => {
 
@@ -371,7 +371,6 @@
                 quoteContainer = document.getElementById('motivational-quote-container');
             }
 
-            // NUEVA FUNCIÓN DE GUARDADO HACIA FIRESTORE
             function saveData(key, value) {
                 if (!currentUser) {
                     console.warn("Usuario no autenticado. El progreso no se guardará en la nube.");
@@ -388,14 +387,14 @@
                 window.saveTimeout = setTimeout(() => {
                     db.collection('userProgress').doc(currentUser.uid).set({
                         progressData: userProgress
-                    }, { merge: true }) // Usamos merge:true para no sobreescribir si hay escrituras simultáneas
+                    }, { merge: true })
                     .then(() => {
                         console.log("Progreso sincronizado con Frecuencia Vital en la nube.");
                     })
                     .catch(error => {
                         console.error("Error al sincronizar:", error);
                     });
-                }, 1500); // Guardamos 1.5 segundos después de la última modificación
+                }, 1500);
             }
 
             async function loadProgressFromFirestore() {
@@ -408,19 +407,16 @@
                     console.log("Datos cargados desde Firestore.");
                     userProgress = doc.data().progressData;
                 } else {
-                    console.log("Nuevo usuario. Se generará un plan inicial.");
+                    console.log("Nuevo usuario o datos no encontrados. Se generará un plan inicial.");
                     userProgress = {};
                     seedInitialProgress();
-                    // No generamos el plan aquí, esperamos a la siguiente línea
                 }
 
-                // Obtenemos el plan del usuario o generamos uno nuevo si no existe.
-                // Esto asegura que cualquier cambio en la función generateStudyPlan se refleje para todos los usuarios.
                 studyPlan = getData('studyPlan');
-                if (!studyPlan) {
-                    console.log("No se encontró un plan de estudio. Generando uno nuevo.");
+                if (!studyPlan || studyPlan.length === 0) {
+                    console.log("No se encontró un plan de estudio válido. Generando uno nuevo.");
                     studyPlan = generateStudyPlan();
-                    saveData('studyPlan', studyPlan); // Guardamos el plan recién generado
+                    saveData('studyPlan', studyPlan);
                 }
                 
                 countdownTargetDateStr = getData('countdownTarget', '2025-09-23');
@@ -487,7 +483,6 @@
             }
             
             function generateStudyPlan() {
-                // FASE 1: Planificación inversa (temas sin cambios)
                 const topicsBySpecialtyPart1 = {
                     "UROLOGÍA": [ "Escroto agudo", "Torsión testicular", "Hiperplasia prostática benigna", "Cáncer de próstata", "Pielonefritis aguda", "Infección de tracto urinario", "Urolitiasis", "Orquiepididimitis", "Cáncer testicular", "Disfunción eréctil", "Estenosis del meato urinario", "Hidrocele", "Varicocele", "Prostatitis aguda", "Cáncer de vejiga", "Cáncer renal", "Incontinencia urinaria", "Retención aguda de orina" ],
                     "ENDOCRINOLOGÍA": [ "Diabetes mellitus", "Prediabetes", "Diabetes en el adulto mayor", "Diabetes en pediatría", "Cetoacidosis diabética y EHH", "Hipoglucemia", "Enfermedad de Addison", "Enfermedad de Cushing / Síndrome de Cushing", "Hiperprolactinemia", "Acromegalia", "Feocromocitoma", "Hiperaldosteronismo", "Hiperparatiroidismo", "Neoplasia endocrina múltple", "Alopecia endocrina" ],
@@ -498,7 +493,7 @@
                     "REUMATOLOGÍA": [ "Artritis reactiva", "Artritis reumatoide", "Espondilitis anquilosante", "Gota", "Lupus eritematoso sistémico", "Arteritis de la temporal", "Granulomatosis de Wegener", "Artritis séptica" ],
                     "NEFROLOGÍA": [ "Lesión renal aguda", "Enfermedad renal crónica", "Nefropatía diabética", "Síndrome nefrítico y nefrootico", "Trastorno ácido-base", "Nefritis lúpica" ],
                     "DERMATOLOGÍA": [ "Dermatitis atópica", "Dermatofitosis", "SSJ y NET", "Escabiosis - Sarna", "Impétigo", "Melanoma", "Psoriasis", "Carcinoma basocelular", "Acné vulgar", "Erisipela", "Urticaria", "Dermatitis por contacto", "Pediculosis capitis", "Síndrome de Ritter", "Carcinoma espinocelular" ],
-                    "PSIQUIATRÍA": [ "Abuso de sustancias", "Abstinencia alcohólica", "Trastorno por alcohol", "Esquizofrenia", "Estrés post traumático", "Trastornos del sueño", "Intento de suicidio", "Tdah", "Trastorno bipolar", "Trastornos de ansiedad", "Trastornos de conducta alimentaria", "Consumo de mariguana", "Violencia contra la mujer", "Autismo", "Síndrome de Munchausen" ], // Depresión mayor movida a Geriatría
+                    "PSIQUIATRÍA": [ "Abuso de sustancias", "Abstinencia alcohólica", "Trastorno por alcohol", "Esquizofrenia", "Estrés post traumático", "Trastornos del sueño", "Intento de suicidio", "Tdah", "Trastorno bipolar", "Trastornos de ansiedad", "Trastornos de conducta alimentaria", "Consumo de mariguana", "Violencia contra la mujer", "Autismo", "Síndrome de Munchausen" ],
                     "GERIATRÍA": [ "Valoración geriátrica", "Alzheimer", "Delirium", "Demencia vascular", "Deterioro cognitivo", "Insomnio en el adulto mayor", "Síndrome de caídas", "Síndrome de fragilidad", "Maltrato en el adulto mayor", "Colapso del cuidador", "Depresión mayor" ],
                     "GENÉTICA": [ "Síndrome de Down", "Síndrome de Klinefelter", "Síndrome de Turner", "Síndrome de Marfan", "Enfermedad de Wilson", "Síndrome de Dravet", "Síndrome de Lynch", "Síndrome de Peutz Jegher", "Von Hippel Lindau" ]
                 };
@@ -511,7 +506,7 @@
                 });
 
                 let plannedDaysPart1 = [];
-                let currentDatePart1 = new Date('2025-06-27');
+                let currentDatePart1 = new Date('2025-06-27T00:00:00');
                 
                 while (allTopicsToSchedulePart1.length > 0) {
                     currentDatePart1.setDate(currentDatePart1.getDate() - 1);
@@ -531,35 +526,17 @@
                     plannedDaysPart1.push(dayData);
                 }
 
-                // NUEVOS DÍAS DE OFTALMOLOGÍA
                 const oftalmoDays = [
                     {
                         date: "2025-06-30",
-                        blocks: [
-                            { 
-                                subject: "OFTALMOLOGÍA", 
-                                topics: [
-                                    "Blefaritis", "Orzuelo", "Conjuntivitis (alergica, bacteriana, neonatal, viral)",
-                                    "Chalazión", "Glaucoma de ángulo abierto", "Glaucoma de ángulo cerrado", "Glaucoma congénito"
-                                ] 
-                            }
-                        ]
+                        blocks: [ { subject: "OFTALMOLOGÍA", topics: ["Blefaritis", "Orzuelo", "Conjuntivitis (alergica, bacteriana, neonatal, viral)", "Chalazión", "Glaucoma de ángulo abierto", "Glaucoma de ángulo cerrado", "Glaucoma congénito"] } ]
                     },
                     {
                         date: "2025-07-01",
-                        blocks: [
-                            { 
-                                subject: "OFTALMOLOGÍA", 
-                                topics: [
-                                    "Degeneración macular", "Desprendimiento de retina", "Retinopatía diabética", 
-                                    "Retinopatía hipertensiva", "Catarata", "Trauma ocular", "Ojo rojo"
-                                ] 
-                            }
-                        ]
+                        blocks: [ { subject: "OFTALMOLOGÍA", topics: ["Degeneración macular", "Desprendimiento de retina", "Retinopatía diabética", "Retinopatía hipertensiva", "Catarata", "Trauma ocular", "Ojo rojo"] } ]
                     }
                 ];
 
-                // FASE 2: Planificación hacia adelante con NUEVOS TEMAS Y FECHAS
                 const topicsBySpecialtyPart2 = {
                     "TYO": ["Osteoartritis", "Osteomielitis", "Osteosarcoma", "Sarcoma de Ewing", "Tumores óseos malignos", "Embolia grasa", "Costilla cervical", "Esguince cervical", "Lumbalgia", "Hernia de disco", "Túnel del carpo", "Síndrome de hombro doloroso", "Fractura de clavícula", "Fractura de húmero proximal", "Luxación glenohumeral", "Luxación de codo", "Codo de niñera", "Fracturas de codo", "Fracturas de antebrazo", "Fractura de radio distal", "Lesiones fisiarias", "Fracturas expuestas", "Fractura de cadera", "Epifisiolistesis femoral", "Legg Calvé Perthes", "Luxación coxofemoral", "Lesiones de rodilla", "Fractura de diáfisis de tibia", "Esguince de tobillo", "Fractura de tobillo", "Rotura de talón de Aquiles", "Pie equino varo", "Pie plano"],
                     "CARDIOLOGÍA": ["Fiebre reumática", "Estenosis aórtica", "Insuficiencia aórtica", "Estenosis mitral", "Insuficiencia mitral", "Otras valvulopatías", "Pericarditis", "Endocarditis infecciosa", "Infarto agudo de miocardio", "Enfermedad coronaria", "Disección aórtica", "Aneurisma aórtico abdominal", "Cor pulmonar crónico", "Hipertensión arterial sistémica", "Crisis hipertensivas", "Hipertensión pulmonar", "Insuficiencia cardíaca aguda", "Insuficiencia cardíaca crónica", "Edema pulmonar", "Hipotensión ortostática", "Rehabilitación cardíaca"],
@@ -619,37 +596,26 @@
                     currentDatePart2.setDate(currentDatePart2.getDate() + 1);
                 }
 
-                // Unir las partes y añadir los días vacíos finales
                 let finalPlannedDays = [...plannedDaysPart1.reverse(), ...oftalmoDays, ...plannedDaysPart2];
-                let lastPlannedDate = new Date(currentDatePart2.setDate(currentDatePart2.getDate() - 1));
-                let finalEndDate = new Date('2025-09-30');
                 
-                // Añadir días vacíos entre fin de FASE 1 y principio de FASE 2 si hay un hueco.
-                const endOfPhase1 = new Date(plannedDaysPart1[plannedDaysPart1.length - 1].date);
-                const startOfPhase2 = new Date(startDatePart2);
-                let gapDate = new Date(endOfPhase1);
-                gapDate.setDate(gapDate.getDate() + 1);
-                while(gapDate < new Date("2025-06-30")) { // Llenar hueco hasta Oftalmología
-                    finalPlannedDays.push({ date: gapDate.toISOString().split('T')[0], blocks: [] });
-                    gapDate.setDate(gapDate.getDate() + 1);
+                const daysAsMap = new Map(finalPlannedDays.map(day => [day.date, day]));
+                let fullPlan = [];
+                let cursorDate = new Date(plannedDaysPart1[0].date);
+                let finalDate = new Date('2025-09-30T00:00:00');
+
+                while(cursorDate <= finalDate) {
+                    const dateStr = cursorDate.toISOString().split('T')[0];
+                    if(daysAsMap.has(dateStr)) {
+                        fullPlan.push(daysAsMap.get(dateStr));
+                    } else {
+                        fullPlan.push({ date: dateStr, blocks: [] });
+                    }
+                    cursorDate.setDate(cursorDate.getDate() + 1);
                 }
                 
-                let gapDate2 = new Date("2025-07-01"); // Llenar hueco desde Oftalmología
-                gapDate2.setDate(gapDate2.getDate() + 1);
-                while(gapDate2 < startOfPhase2){
-                    finalPlannedDays.push({ date: gapDate2.toISOString().split('T')[0], blocks: [] });
-                    gapDate2.setDate(gapDate2.getDate() + 1);
-                }
-
-
-                while(lastPlannedDate < finalEndDate) {
-                    lastPlannedDate.setDate(lastPlannedDate.getDate() + 1);
-                    finalPlannedDays.push({ date: lastPlannedDate.toISOString().split('T')[0], blocks: [] });
-                }
-
-                return finalPlannedDays.sort((a,b) => new Date(a.date) - new Date(b.date));
+                return fullPlan.sort((a,b) => new Date(a.date) - new Date(b.date));
             }
-
+            
             function getData(key, defaultValue = null) { const keys = key.split('.'); let result = userProgress; for (const k of keys) { if (result && typeof result === 'object' && k in result) { result = result[k]; } else { return defaultValue; } } return result; }
             function isTopicComplete(topicId) { return ALL_TASK_IDS.every(taskId => getData(`topicData.${topicId}.${taskId}`) === true); }
             
@@ -666,12 +632,12 @@
             function displayDailyQuote() { if (quoteContainer) { const randomIndex = Math.floor(Math.random() * motivationalQuotes.length); quoteContainer.textContent = motivationalQuotes[randomIndex]; } }
             function startCountdown() { if (countdownInterval) clearInterval(countdownInterval); if (!countdownTargetDateStr) return; const targetDate = new Date(`${countdownTargetDateStr}T08:00:00`).getTime(); const daysEl = document.getElementById('countdown-days'); const hoursEl = document.getElementById('countdown-hours'); const minutesEl = document.getElementById('countdown-minutes'); const secondsEl = document.getElementById('countdown-seconds'); const update = () => { const now = new Date().getTime(); const distance = targetDate - now; if (distance < 0) { daysEl.textContent = "000"; hoursEl.textContent = "00"; minutesEl.textContent = "00"; secondsEl.textContent = "00"; clearInterval(countdownInterval); return; } daysEl.textContent = String(Math.floor(distance / (1000 * 60 * 60 * 24))).padStart(3, '0'); hoursEl.textContent = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0'); minutesEl.textContent = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0'); secondsEl.textContent = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, '0'); }; update(); countdownInterval = setInterval(update, 1000); }
             function createTopicListItem(topic) { const topicId = generateTopicId(topic); const isComplete = isTopicComplete(topicId); const liClass = `topic-item ${isComplete ? 'topic-completed' : ''}`; let scoreHTML = ''; const { scorePercentage } = getTopicProgress(topicId); const reactivos = parseInt(getData(`topicData.${topicId}.scoreReactivos`, '0')) || 0; if (reactivos > 0) { const color = getScoreColor(scorePercentage); scoreHTML = `<span class="topic-score" style="color: ${color};">(${scorePercentage.toFixed(1)}%)</span>`; } return `<li class="${liClass}" draggable="true" data-topic-id="${topicId}" data-topic-name="${topic}"><span>${topic}</span>${scoreHTML}</li>`; }
-            function buildSubjectMap() { subjectToTopicsMap.clear(); if (!studyPlan) return; let lastSubject = null; studyPlan.forEach(day => { day.blocks.forEach(block => { if (block.subject) { lastSubject = block.subject; } if (lastSubject) { if (!subjectToTopicsMap.has(lastSubject)) { subjectToTopicsMap.set(lastSubject, []); } if (block.topics) { const dayTopicIds = block.topics.map(topicName => generateTopicId(topicName)); const topicsForSubject = subjectToTopicsMap.get(lastSubject); dayTopicIds.forEach(id => { if (!topicsForSubject.includes(id)) { topicsForSubject.push(id); } }); } } }); }); }
+            function buildSubjectMap() { subjectToTopicsMap.clear(); if (!studyPlan) return; studyPlan.forEach(day => { day.blocks.forEach(block => { if (block.subject) { if (!subjectToTopicsMap.has(block.subject)) { subjectToTopicsMap.set(block.subject, []); } if (block.topics) { const dayTopicIds = block.topics.map(topicName => generateTopicId(topicName)); const topicsForSubject = subjectToTopicsMap.get(block.subject); dayTopicIds.forEach(id => { if (!topicsForSubject.includes(id)) { topicsForSubject.push(id); } }); } } else if (block.topics) { console.warn("Found topics without a subject on date:", day.date, block.topics); } }); }); }
             function calculateSubjectScore(subjectName) { const topicIds = subjectToTopicsMap.get(subjectName); if (!topicIds || topicIds.length === 0) return null; let totalScoreSum = 0; let scoredTopicsCount = 0; topicIds.forEach(topicId => { const reactivos = parseInt(getData(`topicData.${topicId}.scoreReactivos`)) || 0; if (reactivos > 0) { const { scorePercentage } = getTopicProgress(topicId); totalScoreSum += scorePercentage; scoredTopicsCount++; } }); return scoredTopicsCount > 0 ? (totalScoreSum / scoredTopicsCount).toFixed(2) : null; }
-            function updateGlobalProgressBars() { if (!studyPlan) return; buildSubjectMap(); let totalTopics = 0; subjectToTopicsMap.forEach((topics) => { totalTopics += topics.length; }); let completedTopics = 0; subjectToTopicsMap.forEach((topicIds) => { topicIds.forEach(topicId => { if (isTopicComplete(topicId)) { completedTopics++; } }); }); const advancePercentage = totalTopics > 0 ? (completedTopics / totalTopics) * 100 : 0; globalAdvanceBar.style.width = `${advancePercentage}%`; globalAdvanceBar.textContent = `${advancePercentage.toFixed(1)}%`; let totalSubjectScoreSum = 0; let subjectsWithScoresCount = 0; subjectToTopicsMap.forEach((_, subject) => { const subjectScoreStr = calculateSubjectScore(subject); if (subjectScoreStr !== null) { totalSubjectScoreSum += parseFloat(subjectScoreStr); subjectsWithScoresCount++; }}); const scorePercentage = subjectsWithScoresCount > 0 ? totalSubjectScoreSum / subjectsWithScoresCount : 0; globalScoreBar.style.width = `${scorePercentage}%`; globalScoreBar.textContent = `${scorePercentage.toFixed(1)}%`; }
+            function updateGlobalProgressBars() { if (!studyPlan) return; buildSubjectMap(); let totalTopics = 0; subjectToTopicsMap.forEach((topics) => { totalTopics += topics.length; }); let completedTopics = 0; subjectToTopicsMap.forEach((topicIds) => { topicIds.forEach(topicId => { if (isTopicComplete(topicId)) { completedTopics++; } }); }); const advancePercentage = totalTopics > 0 ? (completedTopics / totalTopics) * 100 : 0; globalAdvanceBar.style.width = `${advancePercentage}%`; globalAdvanceBar.textContent = `${advancePercentage.toFixed(1)}%`; document.getElementById('global-advance-label').textContent = `Avance Global (${completedTopics}/${totalTopics} Temas)`; let totalSubjectScoreSum = 0; let subjectsWithScoresCount = 0; subjectToTopicsMap.forEach((_, subject) => { const subjectScoreStr = calculateSubjectScore(subject); if (subjectScoreStr !== null) { totalSubjectScoreSum += parseFloat(subjectScoreStr); subjectsWithScoresCount++; }}); const scorePercentage = subjectsWithScoresCount > 0 ? totalSubjectScoreSum / subjectsWithScoresCount : 0; globalScoreBar.style.width = `${scorePercentage}%`; globalScoreBar.textContent = `${scorePercentage.toFixed(1)}%`; }
             
             function populateCalendar() {
-                if (!studyPlan) return;
+                if (!studyPlan) { console.error("No study plan to populate."); return; }
                 buildSubjectMap();
                 const daysMap = new Map(studyPlan.map(day => [day.date, day]));
                 const startDate = new Date(studyPlan[0].date + "T00:00:00");
@@ -694,7 +660,7 @@
                 ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].forEach(day => calendarContainer.innerHTML += `<div class="header-cell day-header">${day}</div>`);
                 monthLayout.forEach((layout, name) => { calendarContainer.innerHTML += `<div class="month-cell" style="grid-row: ${layout.startRow} / span ${layout.rowSpan}">${name}</div>`; });
                 weeks.forEach((week, weekIndex) => {
-                    calendarContainer.innerHTML += `<div class="week-cell-container" style="grid-row: ${weekIndex + 2}"><span class="week-number">${weekIndex + 1}</span></div>`;
+                    calendarContainer.innerHTML += `<div class="week-cell-container" style="grid-row: ${weekIndex + 2}"><span class="week-number">${Math.floor((new Date(week[0]).getTime() - new Date(studyPlan[0].date).getTime()) / (7*24*60*60*1000)) + 1}</span></div>`;
                     week.forEach(date => {
                         const cell = document.createElement('div');
                         cell.className = 'day-cell';
@@ -705,16 +671,16 @@
                             cell.dataset.date = dateString;
                             cell.innerHTML = `<div class="calendar-day-number">${date.getDate()}</div>`;
                             const dayData = daysMap.get(dateString);
-                            if (dayData && dayData.blocks) {
+                            if (dayData && dayData.blocks && dayData.blocks.length > 0) {
                                 let contentHTML = '<ul>';
                                 dayData.blocks.forEach(block => {
-                                    if (block.subject && !displayedSubjects.has(block.subject)) {
+                                    if (block.subject && !displayedSubjects.has(dayData.date + block.subject)) {
                                         const isComplete = isSubjectComplete(block.subject);
                                         const completedClass = isComplete ? ' subject-completed' : '';
                                         const score = calculateSubjectScore(block.subject);
                                         const scoreText = score !== null ? `<span class="subject-score">(${score}%)</span>` : '';
                                         contentHTML += `<li><span class="subject-title${completedClass}">${block.subject}${scoreText}</span></li>`;
-                                        displayedSubjects.add(block.subject);
+                                        displayedSubjects.add(dayData.date + block.subject);
                                     }
                                     if (block.topics) {
                                         contentHTML += block.topics.map(topic => createTopicListItem(topic)).join('');
@@ -733,7 +699,7 @@
             }
 
             function createSpecialtyHeaderHTML(specialtyName, colorVar) { const specialtyId = generateTopicId(specialtyName); return `<div class="specialty-header" data-specialty-header="${specialtyName}" style="border-left-color: var(${colorVar})"><div class="specialty-header-main"><h3 style="color: var(${colorVar})">${specialtyName}</h3></div><div class="specialty-progress-wrapper"><small>Avance</small><div class="specialty-progress-container"><div class="specialty-progress-bar" id="sp-progress-${specialtyId}"></div></div><span class="specialty-percentage-text" id="sp-progress-text-${specialtyId}">0%</span></div><div class="specialty-progress-wrapper"><small>Nota</small><div class="specialty-progress-container"><div class="specialty-score-bar" id="sp-score-${specialtyId}"></div></div><span class="specialty-percentage-text" id="sp-score-text-${specialtyId}">0%</span></div></div>`; }
-            function populateKanbanBoard() { todoContainer.innerHTML = ''; inprogressContainer.innerHTML = ''; doneContainer.innerHTML = ''; const specialtyColors = ['--step-1-color', '--step-2-color', '--step-3-color', '--step-4-color', '--step-5-color', '--step-6-color']; let colorIndex = 0; const allSpecialties = {}; buildSubjectMap(); subjectToTopicsMap.forEach((topicIds, specialtyName) => { const topicNames = topicIds.map(id => { for (const day of studyPlan) { for (const block of day.blocks) { if (block.topics) { const foundTopic = block.topics.find(t => generateTopicId(t) === id); if (foundTopic) return foundTopic; } } } return null; }).filter(Boolean); if (topicNames.length > 0) { allSpecialties[specialtyName] = { topics: topicNames, color: specialtyColors[colorIndex % specialtyColors.length] }; colorIndex++; } }); for (const specialtyName in allSpecialties) { const specialtyData = allSpecialties[specialtyName]; const headerHTML = createSpecialtyHeaderHTML(specialtyName, specialtyData.color); const specialtyFragments = { todo: document.createDocumentFragment(), inprogress: document.createDocumentFragment(), done: document.createDocumentFragment() }; specialtyData.topics.forEach(topicName => { const topicId = generateTopicId(topicName); const state = getTopicKanbanState(topicId); const cardHTML = createKanbanCardHTML(topicName, topicId, specialtyName); const cardElement = document.createElement('div'); cardElement.innerHTML = cardHTML; specialtyFragments[state].appendChild(cardElement.firstChild); }); if (specialtyFragments.todo.hasChildNodes()) { todoContainer.innerHTML += headerHTML; todoContainer.appendChild(specialtyFragments.todo); } if (specialtyFragments.inprogress.hasChildNodes()) { inprogressContainer.innerHTML += headerHTML; inprogressContainer.appendChild(specialtyFragments.inprogress); } if (specialtyFragments.done.hasChildNodes()) { doneContainer.innerHTML += headerHTML; doneContainer.appendChild(specialtyFragments.done); } } updateAllSpecialtyProgressOnBoard(); }
+            function populateKanbanBoard() { todoContainer.innerHTML = ''; inprogressContainer.innerHTML = ''; doneContainer.innerHTML = ''; const specialtyColors = ['--step-1-color', '--step-2-color', '--step-3-color', '--step-4-color', '--step-5-color', '--step-6-color', '#c0392b', '#8e44ad', '#2c3e50', '#16a085', '#d35400', '#2980b9']; let colorIndex = 0; const allSpecialties = {}; buildSubjectMap(); subjectToTopicsMap.forEach((topicIds, specialtyName) => { const topicNames = topicIds.map(id => { for (const day of studyPlan) { for (const block of day.blocks) { if (block.topics) { const foundTopic = block.topics.find(t => generateTopicId(t) === id); if (foundTopic) return foundTopic; } } } return null; }).filter(Boolean); if (topicNames.length > 0) { allSpecialties[specialtyName] = { topics: topicNames, color: specialtyColors[colorIndex % specialtyColors.length] }; colorIndex++; } }); for (const specialtyName in allSpecialties) { const specialtyData = allSpecialties[specialtyName]; const headerHTML = createSpecialtyHeaderHTML(specialtyName, specialtyData.color); const specialtyFragments = { todo: document.createDocumentFragment(), inprogress: document.createDocumentFragment(), done: document.createDocumentFragment() }; specialtyData.topics.forEach(topicName => { const topicId = generateTopicId(topicName); const state = getTopicKanbanState(topicId); const cardHTML = createKanbanCardHTML(topicName, topicId, specialtyName); const cardElement = document.createElement('div'); cardElement.innerHTML = cardHTML; specialtyFragments[state].appendChild(cardElement.firstChild); }); if (specialtyFragments.todo.hasChildNodes()) { todoContainer.innerHTML += headerHTML; todoContainer.appendChild(specialtyFragments.todo); } if (specialtyFragments.inprogress.hasChildNodes()) { inprogressContainer.innerHTML += headerHTML; inprogressContainer.appendChild(specialtyFragments.inprogress); } if (specialtyFragments.done.hasChildNodes()) { doneContainer.innerHTML += headerHTML; doneContainer.appendChild(specialtyFragments.done); } } updateAllSpecialtyProgressOnBoard(); }
             function createKanbanCardHTML(topicName, topicId, specialtyName) { const { completionPercentage, scorePercentage } = getTopicProgress(topicId); const scoreColor = getScoreColor(scorePercentage); const state = getTopicKanbanState(topicId); let statusColorVar = '--color-todo'; if (state === 'inprogress') statusColorVar = '--color-inprogress'; if (state === 'done') statusColorVar = '--color-done'; return `<article class="kanban-card" data-topic-id="${topicId}" data-topic-name="${topicName}" data-specialty="${specialtyName}" style="border-left: 4px solid var(${statusColorVar});"><div class="card-summary"><div class="card-topic-name">${topicName}</div><div class="card-progress-display"><div class="card-progress-bar-container"><div class="card-progress-bar" style="width: ${completionPercentage}%; background-color: var(${statusColorVar});"></div></div><span class="card-progress-text">${completionPercentage.toFixed(0)}%</span><span class="card-score-text" style="color: ${scoreColor}">${scorePercentage.toFixed(0)}%</span></div></div></article>`; }
             function showDayModal(dateString) { const dayData = studyPlan.find(d => d.date === dateString); const date = new Date(dateString + "T00:00:00"); dayModalTitle.textContent = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }); let topicsHTML = '<ul>'; if (dayData && dayData.blocks) { dayData.blocks.forEach(block => { if (block.subject) { const score = calculateSubjectScore(block.subject); const scoreText = score !== null ? `<span class="subject-score">(${score}%)</span>` : ''; topicsHTML += `<li><span class="subject-title">${block.subject}${scoreText}</span></li>`; } if(block.topics) { topicsHTML += block.topics.map(topic => createTopicListItem(topic)).join(''); } }); } topicsHTML += '</ul>'; dayModalNotes.value = getData(`dayNotes.${dateString}`, ''); dayModal.dataset.currentDate = dateString; dayModalOverlay.classList.add('visible'); dayModal.classList.add('visible'); }
             function closeDayModal() { dayModalOverlay.classList.remove('visible'); dayModal.classList.remove('visible'); }
@@ -756,39 +722,32 @@
                 assignDOMelements();
                 displayDailyQuote();
 
-                // --- INICIO DE LÓGICA DE AUTENTICACIÓN ---
                 const authBtn = document.getElementById('auth-btn');
                 const userDisplay = document.getElementById('user-display');
 
                 auth.onAuthStateChanged(user => {
                     if (user) {
-                        // El usuario ha iniciado sesión
                         currentUser = user;
                         userDisplay.textContent = `Hola, ${user.displayName.split(' ')[0]}`;
                         userDisplay.style.display = 'inline';
                         authBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
                         authBtn.style.backgroundColor = 'var(--error-color)';
                         
-                        // ¡Punto clave! Cargamos los datos del usuario desde la nube
                         loadProgressFromFirestore(); 
                     } else {
-                        // El usuario ha cerrado sesión
                         currentUser = null;
                         userDisplay.style.display = 'none';
                         authBtn.innerHTML = '<i class="fab fa-google" style="margin-right: 8px;"></i> Login';
                         authBtn.style.backgroundColor = '#4A90E2';
                         
-                        // Opcional: Limpiar la interfaz o mostrar un mensaje
                         calendarContainer.innerHTML = '<h2 style="text-align:center; padding: 40px;">Inicia sesión para ver y guardar tu progreso.</h2>';
                     }
                 });
 
                 authBtn.addEventListener('click', () => {
                     if (currentUser) {
-                        // Si hay un usuario, el botón hace logout
                         auth.signOut();
                     } else {
-                        // Si no, el botón hace login con Google
                         const provider = new firebase.auth.GoogleAuthProvider();
                         auth.signInWithPopup(provider).catch(error => {
                             console.error("Error durante el login:", error);
@@ -796,9 +755,7 @@
                         });
                     }
                 });
-                // --- FIN DE LÓGICA DE AUTENTICACIÓN ---
                 
-                // --- El resto de los event listeners ---
                 viewSwitcher.addEventListener('click', switchView);
                 boardView.addEventListener('click', e => { const card = e.target.closest('.kanban-card'); if (card) { const { topicId, topicName } = card.dataset; showTopicPlan(topicId, topicName); }});
                 calendarContainer.addEventListener('click', e => { const topicLi = e.target.closest('.topic-item'); if (topicLi && !draggedItem) { const { topicId, topicName } = topicLi.dataset; showTopicPlan(topicId, topicName); return; } const cell = e.target.closest('.day-cell:not(.empty)'); if (cell) showDayModal(cell.dataset.date); });
@@ -817,7 +774,7 @@
                 calendarContainer.addEventListener('dragstart', e => { if (e.target.classList.contains('topic-item')) { draggedItem = e.target; const topicName = draggedItem.dataset.topicName; const subjectTitle = getSubjectForTopic(topicName); e.dataTransfer.setData('application/json', JSON.stringify({ topicName: topicName, sourceSubject: subjectTitle })); setTimeout(() => e.target.classList.add('dragging'), 0); } });
                 calendarContainer.addEventListener('dragend', e => { if (draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; clearDragStyles(); } });
                 calendarContainer.addEventListener('dragover', e => { e.preventDefault(); const targetCell = e.target.closest('.day-cell:not(.empty)'); if (!targetCell || !draggedItem) { clearDragStyles(); return; } const sourceDate = draggedItem.closest('.day-cell').dataset.date; const targetDate = targetCell.dataset.date; clearDragStyles(); if (sourceDate === targetDate) { const targetTopic = e.target.closest('.topic-item'); if (targetTopic && targetTopic !== draggedItem) { lastDragOverTopic = targetTopic; const rect = targetTopic.getBoundingClientRect(); const midpointY = rect.top + rect.height / 2; if (e.clientY < midpointY) { targetTopic.classList.add('drag-over-top'); } else { targetTopic.classList.add('drag-over-bottom'); } } } else { lastDragOverCell = targetCell; targetCell.classList.add('drag-over'); } });
-                calendarContainer.addEventListener('drop', e => { e.preventDefault(); if (!draggedItem) return; const targetCell = e.target.closest('.day-cell'); if (!targetCell || targetCell.classList.contains('empty')) { clearDragStyles(); return; } const sourceCell = draggedItem.closest('.day-cell'); const sourceDate = sourceCell.dataset.date; const targetDate = targetCell.dataset.date; const { topicName, sourceSubject } = JSON.parse(e.dataTransfer.getData('application/json')); const sourceDay = studyPlan.find(d => d.date === sourceDate); if (!sourceDay) return; let removed = false; sourceDay.blocks.forEach(block => { if (block.topics) { const topicIndex = block.topics.indexOf(topicName); if (topicIndex > -1) { block.topics.splice(topicIndex, 1); removed = true; } } }); if (!removed) return; let targetDay = studyPlan.find(d => d.date === targetDate); if (!targetDay) { targetDay = { date: targetDate, blocks: [{ topics: [] }] }; studyPlan.push(targetDay); } let targetBlock = targetDay.blocks.find(b => getSubjectForTopic(b.topics?.[0]) === sourceSubject || b.subject === sourceSubject); if (!targetBlock) { targetBlock = { topics: [] }; targetDay.blocks.unshift(targetBlock); } const targetTopicEl = e.target.closest('.topic-item'); if (targetTopicEl && sourceDate === targetDate) { const targetTopicName = targetTopicEl.dataset.topicName; const rect = targetTopicEl.getBoundingClientRect(); const midpointY = rect.top + rect.height / 2; const insertBefore = e.clientY < midpointY; const targetIndex = targetBlock.topics.indexOf(targetTopicName); targetBlock.topics.splice(insertBefore ? targetIndex : targetIndex + 1, 0, topicName); } else { targetBlock.topics.push(topicName); } studyPlan.forEach(day => { day.blocks = day.blocks.filter(block => (block.subject && block.topics && block.topics.length > 0) || (!block.subject && block.topics && block.topics.length > 0) || (block.subject && !block.topics)); }); studyPlan = studyPlan.filter(day => day.blocks.length > 0 && day.blocks.some(b => (b.topics && b.topics.length > 0) || b.subject)); studyPlan.sort((a, b) => new Date(a.date) - new Date(b.date)); clearDragStyles(); saveData('studyPlan', studyPlan); populateCalendar(); });
+                calendarContainer.addEventListener('drop', e => { e.preventDefault(); if (!draggedItem) return; const targetCell = e.target.closest('.day-cell'); if (!targetCell || targetCell.classList.contains('empty')) { clearDragStyles(); return; } const sourceCell = draggedItem.closest('.day-cell'); const sourceDate = sourceCell.dataset.date; const targetDate = targetCell.dataset.date; const { topicName, sourceSubject } = JSON.parse(e.dataTransfer.getData('application/json')); const sourceDay = studyPlan.find(d => d.date === sourceDate); if (!sourceDay) return; let removed = false; sourceDay.blocks.forEach(block => { if (block.topics) { const topicIndex = block.topics.indexOf(topicName); if (topicIndex > -1) { block.topics.splice(topicIndex, 1); removed = true; } } }); if (!removed) return; let targetDay = studyPlan.find(d => d.date === targetDate); if (!targetDay) { targetDay = { date: targetDate, blocks: [{ topics: [] }] }; studyPlan.push(targetDay); } let targetBlock = targetDay.blocks.find(b => getSubjectForTopic(b.topics?.[0]) === sourceSubject || b.subject === sourceSubject); if (!targetBlock) { targetBlock = { subject: sourceSubject, topics: [] }; targetDay.blocks.unshift(targetBlock); } const targetTopicEl = e.target.closest('.topic-item'); if (targetTopicEl && sourceDate === targetDate) { const targetTopicName = targetTopicEl.dataset.topicName; const rect = targetTopicEl.getBoundingClientRect(); const midpointY = rect.top + rect.height / 2; const insertBefore = e.clientY < midpointY; const targetIndex = targetBlock.topics.indexOf(targetTopicName); targetBlock.topics.splice(insertBefore ? targetIndex : targetIndex + 1, 0, topicName); } else { targetBlock.topics.push(topicName); } studyPlan.forEach(day => { day.blocks = day.blocks.filter(block => block.topics && block.topics.length > 0); }); studyPlan = studyPlan.filter(day => day.blocks.length > 0 && day.blocks.some(b => (b.topics && b.topics.length > 0))); studyPlan.sort((a, b) => new Date(a.date) - new Date(b.date)); clearDragStyles(); saveData('studyPlan', studyPlan); populateCalendar(); });
             }
             
             main();
