@@ -306,14 +306,14 @@
 
         // --- INICIO DE CONFIGURACIÓN DE FIREBASE ---
         // ¡¡¡IMPORTANTE!!! REEMPLAZA ESTO CON TUS PROPIAS CREDENCIALES DE FIREBASE
-const firebaseConfig = {
-  apiKey: "AIzaSyDrU_DTD5JGDwl4rMi--_rA3nX092sCrbA",
-  authDomain: "calendario79-28961.firebaseapp.com",
-  projectId: "calendario79-28961",
-  storageBucket: "calendario79-28961.firebasestorage.app",
-  messagingSenderId: "449922530129",
-  appId: "1:449922530129:web:073a42d04f82c2ce73b170"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyCSnkg03bPx4_SCcHUZvKPMMWyNrLrnLvE",
+            authDomain: "calendario-710a3.firebaseapp.com",
+            projectId: "calendario-710a3",
+            storageBucket: "calendario-710a3.firebasestorage.app",
+            messagingSenderId: "68854839683",
+            appId: "1:68854839683:web:38f0a40a80f81e9bd39eb6"
+        }; 
 
         // Inicializar Firebase
         const app = firebase.initializeApp(firebaseConfig);
@@ -437,6 +437,22 @@ const firebaseConfig = {
             
             function seedInitialProgress() {
                 const initialData = {
+                    "OFTALMOLOGÍA": {
+                        "Blefaritis": { aciertos: 5, reactivos: 9, completedTasks: 10, totalTasks: 10 },
+                        "Orzuelo": { aciertos: 6, reactivos: 9, completedTasks: 10, totalTasks: 10 },
+                        "Conjuntivitis (alergica, bacteriana, neonatal, viral)": { aciertos: 16, reactivos: 21, completedTasks: 10, totalTasks: 10 },
+                        "Chalazión": { aciertos: 9, reactivos: 9, completedTasks: 10, totalTasks: 10 },
+                        "Glaucoma de ángulo abierto": { aciertos: 3, reactivos: 9, completedTasks: 10, totalTasks: 10 },
+                        "Glaucoma de ángulo cerrado": { aciertos: 5, reactivos: 9, completedTasks: 10, totalTasks: 10 },
+                        "Glaucoma congénito": { aciertos: 8, reactivos: 9, completedTasks: 10, totalTasks: 10 },
+                        "Degeneración macular": { aciertos: 0, reactivos: 0, completedTasks: 10, totalTasks: 10 },
+                        "Desprendimiento de retina": { aciertos: 0, reactivos: 0, completedTasks: 10, totalTasks: 10 },
+                        "Retinopatía diabética": { aciertos: 4, reactivos: 9, completedTasks: 10, totalTasks: 10 },
+                        "Retinopatía hipertensiva": { aciertos: 5, reactivos: 9, completedTasks: 10, totalTasks: 10 },
+                        "Catarata": { aciertos: 7, reactivos: 9, completedTasks: 10, totalTasks: 10 },
+                        "Trauma ocular": { aciertos: 15, reactivos: 18, completedTasks: 10, totalTasks: 10 },
+                        "Ojo rojo": { aciertos: 7, reactivos: 9, completedTasks: 10, totalTasks: 10 }
+                    },
                     "GENÉTICA": { "Síndrome de Down": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Síndrome de Klinefelter": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Síndrome de Turner": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Síndrome de Marfan": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Enfermedad de Wilson": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Síndrome de Dravet": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Síndrome de Lynch": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Síndrome de Peutz Jegher": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Von Hippel Lindau": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10} },
                     "GERIATRÍA": { "Valoración geriátrica": {aciertos:18,reactivos:21,completedTasks:10,totalTasks:10}, "Alzheimer": {aciertos:12,reactivos:15,completedTasks:10,totalTasks:10}, "Delirium": {aciertos:7,reactivos:15,completedTasks:10,totalTasks:10}, "Demencia vascular": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Deterioro cognitivo": {aciertos:15,reactivos:21,completedTasks:10,totalTasks:10}, "Insomnio en el adulto mayor": {aciertos:9,reactivos:9,completedTasks:10,totalTasks:10}, "Síndrome de caídas": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Síndrome de fragilidad": {aciertos:15,reactivos:21,completedTasks:10,totalTasks:10}, "Maltrato en el adulto mayor": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Colapso del cuidador": {aciertos:15,reactivos:21,completedTasks:10,totalTasks:10}, "Depresión mayor": {aciertos:9,reactivos:9,completedTasks:10,totalTasks:10} },
                     "PSIQUIATRÍA": { "Abuso de sustancias": {aciertos:11,reactivos:15,completedTasks:10,totalTasks:10}, "Abstinencia alcohólica": {aciertos:12,reactivos:12,completedTasks:10,totalTasks:10}, "Trastorno por alcohol": {aciertos:9,reactivos:15,completedTasks:10,totalTasks:10}, "Esquizofrenia": {aciertos:10,reactivos:15,completedTasks:10,totalTasks:10}, "Estrés post traumático": {aciertos:3,reactivos:9,completedTasks:10,totalTasks:10}, "Trastornos del sueño": {aciertos:10,reactivos:15,completedTasks:10,totalTasks:10}, "Intento de suicidio": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Tdah": {aciertos:8,reactivos:12,completedTasks:10,totalTasks:10}, "Trastorno bipolar": {aciertos:13,reactivos:15,completedTasks:10,totalTasks:10}, "Trastornos de ansiedad": {aciertos:10,reactivos:15,completedTasks:10,totalTasks:10}, "Trastornos de conducta alimentaria": {aciertos:13,reactivos:15,completedTasks:10,totalTasks:10}, "Consumo de mariguana": {aciertos:14,reactivos:15,completedTasks:10,totalTasks:10}, "Violencia contra la mujer": {aciertos:12,reactivos:15,completedTasks:10,totalTasks:10}, "Autismo": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Síndrome de Munchausen": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}},
@@ -515,6 +531,34 @@ const firebaseConfig = {
                     plannedDaysPart1.push(dayData);
                 }
 
+                // NUEVOS DÍAS DE OFTALMOLOGÍA
+                const oftalmoDays = [
+                    {
+                        date: "2025-06-30",
+                        blocks: [
+                            { 
+                                subject: "OFTALMOLOGÍA", 
+                                topics: [
+                                    "Blefaritis", "Orzuelo", "Conjuntivitis (alergica, bacteriana, neonatal, viral)",
+                                    "Chalazión", "Glaucoma de ángulo abierto", "Glaucoma de ángulo cerrado", "Glaucoma congénito"
+                                ] 
+                            }
+                        ]
+                    },
+                    {
+                        date: "2025-07-01",
+                        blocks: [
+                            { 
+                                subject: "OFTALMOLOGÍA", 
+                                topics: [
+                                    "Degeneración macular", "Desprendimiento de retina", "Retinopatía diabética", 
+                                    "Retinopatía hipertensiva", "Catarata", "Trauma ocular", "Ojo rojo"
+                                ] 
+                            }
+                        ]
+                    }
+                ];
+
                 // FASE 2: Planificación hacia adelante con NUEVOS TEMAS Y FECHAS
                 const topicsBySpecialtyPart2 = {
                     "TYO": ["Osteoartritis", "Osteomielitis", "Osteosarcoma", "Sarcoma de Ewing", "Tumores óseos malignos", "Embolia grasa", "Costilla cervical", "Esguince cervical", "Lumbalgia", "Hernia de disco", "Túnel del carpo", "Síndrome de hombro doloroso", "Fractura de clavícula", "Fractura de húmero proximal", "Luxación glenohumeral", "Luxación de codo", "Codo de niñera", "Fracturas de codo", "Fracturas de antebrazo", "Fractura de radio distal", "Lesiones fisiarias", "Fracturas expuestas", "Fractura de cadera", "Epifisiolistesis femoral", "Legg Calvé Perthes", "Luxación coxofemoral", "Lesiones de rodilla", "Fractura de diáfisis de tibia", "Esguince de tobillo", "Fractura de tobillo", "Rotura de talón de Aquiles", "Pie equino varo", "Pie plano"],
@@ -576,7 +620,7 @@ const firebaseConfig = {
                 }
 
                 // Unir las partes y añadir los días vacíos finales
-                let finalPlannedDays = [...plannedDaysPart1.reverse(), ...plannedDaysPart2];
+                let finalPlannedDays = [...plannedDaysPart1.reverse(), ...oftalmoDays, ...plannedDaysPart2];
                 let lastPlannedDate = new Date(currentDatePart2.setDate(currentDatePart2.getDate() - 1));
                 let finalEndDate = new Date('2025-09-30');
                 
@@ -585,10 +629,18 @@ const firebaseConfig = {
                 const startOfPhase2 = new Date(startDatePart2);
                 let gapDate = new Date(endOfPhase1);
                 gapDate.setDate(gapDate.getDate() + 1);
-                while(gapDate < startOfPhase2) {
+                while(gapDate < new Date("2025-06-30")) { // Llenar hueco hasta Oftalmología
                     finalPlannedDays.push({ date: gapDate.toISOString().split('T')[0], blocks: [] });
                     gapDate.setDate(gapDate.getDate() + 1);
                 }
+                
+                let gapDate2 = new Date("2025-07-01"); // Llenar hueco desde Oftalmología
+                gapDate2.setDate(gapDate2.getDate() + 1);
+                while(gapDate2 < startOfPhase2){
+                    finalPlannedDays.push({ date: gapDate2.toISOString().split('T')[0], blocks: [] });
+                    gapDate2.setDate(gapDate2.getDate() + 1);
+                }
+
 
                 while(lastPlannedDate < finalEndDate) {
                     lastPlannedDate.setDate(lastPlannedDate.getDate() + 1);
