@@ -307,20 +307,20 @@
         // --- INICIO DE CONFIGURACIÓN DE FIREBASE ---
         // ¡¡¡IMPORTANTE!!! REEMPLAZA ESTO CON TUS PROPIAS CREDENCIALES DE FIREBASE
         const firebaseConfig = {
-          apiKey: "AIzaSyCSnkg03bPx4_SCcHUZvKPMMWyNrLrnLvE",
-          authDomain: "calendario-710a3.firebaseapp.com",
-          projectId: "calendario-710a3",
-          storageBucket: "calendario-710a3.appspot.com",
-          messagingSenderId: "68854839683",
-          appId: "1:68854839683:web:38f0a40a80f81e9bd39eb6"
-        };
-        // --- FIN DE CONFIGURACIÓN DE FIREBASE ---
+            apiKey: "AIzaSyCSnkg03bPx4_SCcHUZvKPMMWyNrLrnLvE",
+            authDomain: "calendario-710a3.firebaseapp.com",
+            projectId: "calendario-710a3",
+            storageBucket: "calendario-710a3.firebasestorage.app",
+            messagingSenderId: "68854839683",
+            appId: "1:68854839683:web:38f0a40a80f81e9bd39eb6"
+        }; 
 
         // Inicializar Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         let currentUser = null; // Variable para guardar el usuario actual
+        // --- FIN DE CONFIGURACIÓN DE FIREBASE ---
 
         const initializeAppLogic = () => {
 
@@ -371,6 +371,7 @@
                 quoteContainer = document.getElementById('motivational-quote-container');
             }
 
+            // NUEVA FUNCIÓN DE GUARDADO HACIA FIRESTORE
             function saveData(key, value) {
                 if (!currentUser) {
                     console.warn("Usuario no autenticado. El progreso no se guardará en la nube.");
@@ -387,14 +388,14 @@
                 window.saveTimeout = setTimeout(() => {
                     db.collection('userProgress').doc(currentUser.uid).set({
                         progressData: userProgress
-                    }, { merge: true })
+                    }, { merge: true }) // Usamos merge:true para no sobreescribir si hay escrituras simultáneas
                     .then(() => {
                         console.log("Progreso sincronizado con Frecuencia Vital en la nube.");
                     })
                     .catch(error => {
                         console.error("Error al sincronizar:", error);
                     });
-                }, 1500);
+                }, 1500); // Guardamos 1.5 segundos después de la última modificación
             }
 
             async function loadProgressFromFirestore() {
@@ -407,16 +408,19 @@
                     console.log("Datos cargados desde Firestore.");
                     userProgress = doc.data().progressData;
                 } else {
-                    console.log("Nuevo usuario o datos no encontrados. Se generará un plan inicial.");
+                    console.log("Nuevo usuario. Se generará un plan inicial.");
                     userProgress = {};
                     seedInitialProgress();
+                    // No generamos el plan aquí, esperamos a la siguiente línea
                 }
 
+                // Obtenemos el plan del usuario o generamos uno nuevo si no existe.
+                // Esto asegura que cualquier cambio en la función generateStudyPlan se refleje para todos los usuarios.
                 studyPlan = getData('studyPlan');
-                if (!studyPlan || studyPlan.length === 0) {
-                    console.log("No se encontró un plan de estudio válido. Generando uno nuevo.");
+                if (!studyPlan) {
+                    console.log("No se encontró un plan de estudio. Generando uno nuevo.");
                     studyPlan = generateStudyPlan();
-                    saveData('studyPlan', studyPlan);
+                    saveData('studyPlan', studyPlan); // Guardamos el plan recién generado
                 }
                 
                 countdownTargetDateStr = getData('countdownTarget', '2025-09-23');
@@ -432,159 +436,220 @@
             function getScoreColor(percentage) { if (percentage >= 80) return 'var(--vfd-green)'; if (percentage >= 60) return 'var(--warning-color)'; return 'var(--error-color)'; }
             
             function seedInitialProgress() {
-                const initialData = {
-                    "OFTALMOLOGÍA": {
-                        "Blefaritis": { aciertos: 5, reactivos: 9, completedTasks: 10, totalTasks: 10 },
-                        "Orzuelo": { aciertos: 6, reactivos: 9, completedTasks: 10, totalTasks: 10 },
-                        "Conjuntivitis (alergica, bacteriana, neonatal, viral)": { aciertos: 16, reactivos: 21, completedTasks: 10, totalTasks: 10 },
-                        "Chalazión": { aciertos: 9, reactivos: 9, completedTasks: 10, totalTasks: 10 },
-                        "Glaucoma de ángulo abierto": { aciertos: 3, reactivos: 9, completedTasks: 10, totalTasks: 10 },
-                        "Glaucoma de ángulo cerrado": { aciertos: 5, reactivos: 9, completedTasks: 10, totalTasks: 10 },
-                        "Glaucoma congénito": { aciertos: 8, reactivos: 9, completedTasks: 10, totalTasks: 10 },
-                        "Degeneración macular": { aciertos: 0, reactivos: 0, completedTasks: 10, totalTasks: 10 },
-                        "Desprendimiento de retina": { aciertos: 0, reactivos: 0, completedTasks: 10, totalTasks: 10 },
-                        "Retinopatía diabética": { aciertos: 4, reactivos: 9, completedTasks: 10, totalTasks: 10 },
-                        "Retinopatía hipertensiva": { aciertos: 5, reactivos: 9, completedTasks: 10, totalTasks: 10 },
-                        "Catarata": { aciertos: 7, reactivos: 9, completedTasks: 10, totalTasks: 10 },
-                        "Trauma ocular": { aciertos: 15, reactivos: 18, completedTasks: 10, totalTasks: 10 },
-                        "Ojo rojo": { aciertos: 7, reactivos: 9, completedTasks: 10, totalTasks: 10 }
-                    },
-                    "GENÉTICA": { "Síndrome de Down": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Síndrome de Klinefelter": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Síndrome de Turner": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Síndrome de Marfan": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Enfermedad de Wilson": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Síndrome de Dravet": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Síndrome de Lynch": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Síndrome de Peutz Jegher": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10}, "Von Hippel Lindau": {aciertos:0,reactivos:0,completedTasks:10,totalTasks:10} },
-                    "GERIATRÍA": { "Valoración geriátrica": {aciertos:18,reactivos:21,completedTasks:10,totalTasks:10}, "Alzheimer": {aciertos:12,reactivos:15,completedTasks:10,totalTasks:10}, "Delirium": {aciertos:7,reactivos:15,completedTasks:10,totalTasks:10}, "Demencia vascular": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Deterioro cognitivo": {aciertos:15,reactivos:21,completedTasks:10,totalTasks:10}, "Insomnio en el adulto mayor": {aciertos:9,reactivos:9,completedTasks:10,totalTasks:10}, "Síndrome de caídas": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Síndrome de fragilidad": {aciertos:15,reactivos:21,completedTasks:10,totalTasks:10}, "Maltrato en el adulto mayor": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Colapso del cuidador": {aciertos:15,reactivos:21,completedTasks:10,totalTasks:10}, "Depresión mayor": {aciertos:9,reactivos:9,completedTasks:10,totalTasks:10} },
-                    "PSIQUIATRÍA": { "Abuso de sustancias": {aciertos:11,reactivos:15,completedTasks:10,totalTasks:10}, "Abstinencia alcohólica": {aciertos:12,reactivos:12,completedTasks:10,totalTasks:10}, "Trastorno por alcohol": {aciertos:9,reactivos:15,completedTasks:10,totalTasks:10}, "Esquizofrenia": {aciertos:10,reactivos:15,completedTasks:10,totalTasks:10}, "Estrés post traumático": {aciertos:3,reactivos:9,completedTasks:10,totalTasks:10}, "Trastornos del sueño": {aciertos:10,reactivos:15,completedTasks:10,totalTasks:10}, "Intento de suicidio": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Tdah": {aciertos:8,reactivos:12,completedTasks:10,totalTasks:10}, "Trastorno bipolar": {aciertos:13,reactivos:15,completedTasks:10,totalTasks:10}, "Trastornos de ansiedad": {aciertos:10,reactivos:15,completedTasks:10,totalTasks:10}, "Trastornos de conducta alimentaria": {aciertos:13,reactivos:15,completedTasks:10,totalTasks:10}, "Consumo de mariguana": {aciertos:14,reactivos:15,completedTasks:10,totalTasks:10}, "Violencia contra la mujer": {aciertos:12,reactivos:15,completedTasks:10,totalTasks:10}, "Autismo": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Síndrome de Munchausen": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}},
-                    "DERMATOLOGÍA": { "Dermatitis atópica": {aciertos:18,reactivos:18,completedTasks:10,totalTasks:10}, "Dermatofitosis": {aciertos:16,reactivos:18,completedTasks:10,totalTasks:10}, "SSJ y NET": {aciertos:12,reactivos:12,completedTasks:10,totalTasks:10}, "Escabiosis - Sarna": {aciertos:12,reactivos:12,completedTasks:10,totalTasks:10}, "Impétigo": {aciertos:7,reactivos:12,completedTasks:10,totalTasks:10}, "Melanoma": {aciertos:8,reactivos:12,completedTasks:10,totalTasks:10}, "Psoriasis": {aciertos:8,reactivos:12,completedTasks:10,totalTasks:10}, "Carcinoma basocelular": {aciertos:10,reactivos:12,completedTasks:10,totalTasks:10}, "Acné vulgar": {aciertos:9,reactivos:9,completedTasks:10,totalTasks:10}, "Erisipela": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Urticaria": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Dermatitis por contacto": {aciertos:6,reactivos:9,completedTasks:10,totalTasks:10}, "Pediculosis capitis": {aciertos:11,reactivos:12,completedTasks:10,totalTasks:10}, "Síndrome de Ritter": {aciertos:10,reactivos:12,completedTasks:10,totalTasks:10}, "Carcinoma espinocelular": {aciertos:9,reactivos:12,completedTasks:10,totalTasks:10} },
-                    "NEFROLOGÍA": { "Lesión renal aguda": {aciertos:7,reactivos:12,completedTasks:10,totalTasks:10}, "Enfermedad renal crónica": {aciertos:10,reactivos:12,completedTasks:10,totalTasks:10}, "Nefropatía diabética": {aciertos:7,reactivos:12,completedTasks:10,totalTasks:10}, "Síndrome nefrítico y nefrootico": {aciertos:17,reactivos:24,completedTasks:10,totalTasks:10}, "Trastorno ácido-base": {aciertos:11,reactivos:12,completedTasks:10,totalTasks:10}, "Nefritis lúpica": {aciertos:9,reactivos:12,completedTasks:10,totalTasks:10} },
-                    "REUMATOLOGÍA": { "Artritis reactiva": {aciertos:8,reactivos:12,completedTasks:10,totalTasks:10}, "Artritis reumatoide": {aciertos:10,reactivos:15,completedTasks:10,totalTasks:10}, "Espondilitis anquilosante": {aciertos:11,reactivos:12,completedTasks:10,totalTasks:10}, "Gota": {aciertos:6,reactivos:12,completedTasks:10,totalTasks:10}, "Lupus eritematoso sistémico": {aciertos:12,reactivos:15,completedTasks:10,totalTasks:10}, "Arteritis de la temporal": {aciertos:9,reactivos:9,completedTasks:10,totalTasks:10}, "Granulomatosis de Wegener": {aciertos:6,reactivos:9,completedTasks:10,totalTasks:10}, "Artritis séptica": {aciertos:9,reactivos:12,completedTasks:10,totalTasks:10} },
-                    "NEUMOLOGÍA": { "Asma en pediátricos": {aciertos:11,reactivos:21,completedTasks:10,totalTasks:10}, "Exacerbación de asma": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Cáncer de pulmón": {aciertos:4,reactivos:12,completedTasks:10,totalTasks:10}, "Epoc": {aciertos:3,reactivos:12,completedTasks:10,totalTasks:10}, "Derrame pleural": {aciertos:10,reactivos:12,completedTasks:10,totalTasks:10}, "Tabaquismo": {aciertos:5,reactivos:9,completedTasks:10,totalTasks:10} },
-                    "NEUROLOGÍA": { "Cefalea Secundarias": {aciertos:12,reactivos:12,completedTasks:10,totalTasks:10}, "Cefaleas primarias": {aciertos:9,reactivos:12,completedTasks:10,totalTasks:10}, "Crisis convulsivas": {aciertos:4,reactivos:12,completedTasks:10,totalTasks:10}, "Estatus epiléptico": {aciertos:9,reactivos:12,completedTasks:10,totalTasks:10}, "Crisis febriles": {aciertos:5,reactivos:12,completedTasks:10,totalTasks:10}, "Enfermedad de Parkinson": {aciertos:6,reactivos:9,completedTasks:10,totalTasks:10}, "Evc isquémico": {aciertos:10,reactivos:12,completedTasks:10,totalTasks:10}, "Hemorragia subaracnoidea": {aciertos:9,reactivos:9,completedTasks:10,totalTasks:10}, "Guillain Barré": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Esclerosis múltiple": {aciertos:5,reactivos:12,completedTasks:10,totalTasks:10}, "Evc hemorrágico": {aciertos:6,reactivos:12,completedTasks:10,totalTasks:10}, "Miastenia gravis": {aciertos:5,reactivos:9,completedTasks:10,totalTasks:10}, "Muerte encefálica": {aciertos:6,reactivos:9,completedTasks:10,totalTasks:10} },
-                    "HEMATOLOGÍA": { "Anemia generalidades": {aciertos:8,reactivos:18,completedTasks:10,totalTasks:10}, "Anemia ferropénica Adultos": {aciertos:8,reactivos:12,completedTasks:10,totalTasks:10}, "Leucemias": {aciertos:8,reactivos:12,completedTasks:10,totalTasks:10}, "Linfomas": {aciertos:10,reactivos:15,completedTasks:10,totalTasks:10}, "Trombocitopenia inmune": {aciertos:5,reactivos:9,completedTasks:10,totalTasks:10} },
-                    "INFECTOLOGÍA": { "Brucelosis": {aciertos:3,reactivos:3,completedTasks:10,totalTasks:10}, "Cisticercosis": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Clostridium": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Diarrea aguda en adultos": {aciertos:9,reactivos:12,completedTasks:10,totalTasks:10}, "Diarrea en niños": {aciertos:10,reactivos:12,completedTasks:10,totalTasks:10}, "Chinkungunya": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Dengue": {aciertos:6,reactivos:9,completedTasks:10,totalTasks:10}, "Zika": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Paludismo": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Salmonella Fiebre tifoidea": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Sepsis y choque séptico": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Tuberculosis pulmonar": {aciertos:14,reactivos:21,completedTasks:10,totalTasks:10}, "ETS Generalidades": {aciertos:14,reactivos:18,completedTasks:10,totalTasks:10}, "VIH Adultos": {aciertos:16,reactivos:21,completedTasks:10,totalTasks:10}, "VIH Madre e hijo": {aciertos:17,reactivos:21,completedTasks:10,totalTasks:10}, "RV yOportunistas": {aciertos:14,reactivos:21,completedTasks:10,totalTasks:10}, "Sarcoma de Kaposi": {aciertos:6,reactivos:9,completedTasks:10,totalTasks:10}, "Giardiasis": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Tuberculosis extrapulmonar": {aciertos:10,reactivos:12,completedTasks:10,totalTasks:10}, "Lepra": {aciertos:5,reactivos:9,completedTasks:10,totalTasks:10}, "Medios de cultivo": {aciertos:5,reactivos:9,completedTasks:10,totalTasks:10}, "Actinomicosis": {aciertos:6,reactivos:9,completedTasks:10,totalTasks:10}, "Amebiasis intestinal": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Anquilostomiasis": {aciertos:9,reactivos:9,completedTasks:10,totalTasks:10}, "Ascariasis": {aciertos:9,reactivos:9,completedTasks:10,totalTasks:10}, "Aspergilosis": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Coccidioidomicosis": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Difteria": {aciertos:9,reactivos:9,completedTasks:10,totalTasks:10}, "Enfermedad de Chagas": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Enfermedad de Lyme": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Estrongiloidiasis": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Fascitis necrosante": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Fiebre de origen desconocido": {aciertos:5,reactivos:9,completedTasks:10,totalTasks:10}, "Filariasis linfática": {aciertos:4,reactivos:9,completedTasks:10,totalTasks:10}, "Filariasis ocular Loasis": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Infecciones odontogénicas": {aciertos:6,reactivos:9,completedTasks:10,totalTasks:10}, "Leishmaniasis": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Leptospirosis": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Mucormicosis": {aciertos:9,reactivos:9,completedTasks:10,totalTasks:10}, "Oncocercosis": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Oxiuriasis o enterobiasis": {aciertos:5,reactivos:9,completedTasks:10,totalTasks:10}, "Poliomielitis": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Rabia": {aciertos:7,reactivos:9,completedTasks:10,totalTasks:10}, "Tricuriasis": {aciertos:9,reactivos:9,completedTasks:10,totalTasks:10}, "Triquinosis": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Neumonía adquirida en la comunidad": {aciertos:3,reactivos:12,completedTasks:10,totalTasks:10}, "Neumonía bacteriana adquirida en la comunidad Niños": {aciertos:7,reactivos:12,completedTasks:10,totalTasks:10}, "Influenza": {aciertos:6,reactivos:9,completedTasks:10,totalTasks:10}, "Meningitis": {aciertos:10,reactivos:12,completedTasks:10,totalTasks:10}, "Encefalitis viral": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10}, "Absceso cerebral": {aciertos:8,reactivos:9,completedTasks:10,totalTasks:10} },
-                    "ENDOCRINOLOGÍA": { "Diabetes mellitus": {aciertos:12,reactivos:15,completedTasks:10,totalTasks:10}, "Prediabetes": {aciertos:15,reactivos:15,completedTasks:10,totalTasks:10}, "Diabetes en el adulto mayor": {aciertos:6,reactivos:9,completedTasks:10,totalTasks:10}, "Diabetes en pediatría": {aciertos:5,reactivos:9,completedTasks:10,totalTasks:10}, "Cetoacidosis diabética y EHH": {aciertos:13,reactivos:18,completedTasks:10,totalTasks:10}, "Hipoglucemia": {aciertos:6,reactivos:9,completedTasks:10,totalTasks:10}, "Enfermedad de Addison": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Enfermedad de Cushing / Síndrome de Cushing": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Hiperprolactinemia": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Acromegalia": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Feocromocitoma": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Hiperaldosteronismo": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Hiperparatiroidismo": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Neoplasia endocrina múltple": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Alopecia endocrina": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10} },
-                    "UROLOGÍA": { "Escroto agudo": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Torsión testicular": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Hiperplasia prostática benigna": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Cáncer de próstata": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Pielonefritis aguda": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Infección de tracto urinario": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Urolitiasis": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Orquiepididimitis": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Cáncer testicular": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Disfunción eréctil": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Estenosis del meato urinario": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Hidrocele": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Varicocele": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Prostatitis aguda": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Cáncer de vejiga": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Cáncer renal": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Incontinencia urinaria": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10}, "Retención aguda de orina": {aciertos:0,reactivos:0,completedTasks:0,totalTasks:10} }
-                };
-
+                // Esta función asegura que si un usuario es nuevo, su progreso en los temas
+                // empieza en cero, pero no necesita contener datos si no se desean.
+                // Podría estar vacía o solo inicializar el objeto topicData.
                 if (!getData('topicData')) {
-                    userProgress.topicData = {};
-                    for (const specialty in initialData) {
-                        for (const topic in initialData[specialty]) {
-                            const topicId = generateTopicId(topic);
-                            const data = initialData[specialty][topic];
-                            userProgress.topicData[topicId] = {
-                                scoreAciertos: data.aciertos,
-                                scoreReactivos: data.reactivos,
-                            };
-                            ALL_TASK_IDS.forEach((taskId, index) => {
-                                userProgress.topicData[topicId][taskId] = (data.completedTasks > index);
-                            });
-                        }
-                    }
-                    saveData('topicData', userProgress.topicData);
+                     userProgress.topicData = {};
+                     // No es necesario pre-poblar datos de temas viejos.
+                     // El sistema los creará conforme el usuario interactúe.
+                     saveData('topicData', userProgress.topicData);
                 }
             }
             
+            // =================================================================================
+            // === INICIO DE LA MODIFICACIÓN: Nueva función `generateStudyPlan` ===
+            // =================================================================================
             function generateStudyPlan() {
-                const topicsBySpecialtyPart1 = {
-                    "UROLOGÍA": [ "Escroto agudo", "Torsión testicular", "Hiperplasia prostática benigna", "Cáncer de próstata", "Pielonefritis aguda", "Infección de tracto urinario", "Urolitiasis", "Orquiepididimitis", "Cáncer testicular", "Disfunción eréctil", "Estenosis del meato urinario", "Hidrocele", "Varicocele", "Prostatitis aguda", "Cáncer de vejiga", "Cáncer renal", "Incontinencia urinaria", "Retención aguda de orina" ],
-                    "ENDOCRINOLOGÍA": [ "Diabetes mellitus", "Prediabetes", "Diabetes en el adulto mayor", "Diabetes en pediatría", "Cetoacidosis diabética y EHH", "Hipoglucemia", "Enfermedad de Addison", "Enfermedad de Cushing / Síndrome de Cushing", "Hiperprolactinemia", "Acromegalia", "Feocromocitoma", "Hiperaldosteronismo", "Hiperparatiroidismo", "Neoplasia endocrina múltple", "Alopecia endocrina" ],
-                    "INFECTOLOGÍA": [ "Brucelosis", "Cisticercosis", "Clostridium", "Diarrea aguda en adultos", "Diarrea en niños", "Chinkungunya", "Dengue", "Zika", "Paludismo", "Salmonella Fiebre tifoidea", "Sepsis y choque séptico", "Tuberculosis pulmonar", "ETS Generalidades", "VIH Adultos", "VIH Madre e hijo", "RV yOportunistas", "Sarcoma de Kaposi", "Giardiasis", "Tuberculosis extrapulmonar", "Lepra", "Medios de cultivo", "Actinomicosis", "Amebiasis intestinal", "Anquilostomiasis", "Ascariasis", "Aspergilosis", "Coccidioidomicosis", "Difteria", "Enfermedad de Chagas", "Enfermedad de Lyme", "Estrongiloidiasis", "Fascitis necrosante", "Fiebre de origen desconocido", "Filariasis linfática", "Filariasis ocular Loasis", "Infecciones odontogénicas", "Leishmaniasis", "Leptospirosis", "Mucormicosis", "Oncocercosis", "Oxiuriasis o enterobiasis", "Poliomielitis", "Rabia", "Tricuriasis", "Triquinosis", "Neumonía adquirida en la comunidad", "Neumonía bacteriana adquirida en la comunidad Niños", "Influenza", "Meningitis", "Encefalitis viral", "Absceso cerebral" ],
-                    "HEMATOLOGÍA": [ "Anemia generalidades", "Anemia ferropénica Adultos", "Leucemias", "Linfomas", "Trombocitopenia inmune" ],
-                    "NEUROLOGÍA": [ "Cefalea Secundarias", "Cefaleas primarias", "Crisis convulsivas", "Estatus epiléptico", "Crisis febriles", "Enfermedad de Parkinson", "Evc isquémico", "Hemorragia subaracnoidea", "Guillain Barré", "Esclerosis múltiple", "Evc hemorrágico", "Miastenia gravis", "Muerte encefálica" ],
-                    "NEUMOLOGÍA": [ "Asma en pediátricos", "Exacerbación de asma", "Cáncer de pulmón", "Epoc", "Derrame pleural", "Tabaquismo" ],
-                    "REUMATOLOGÍA": [ "Artritis reactiva", "Artritis reumatoide", "Espondilitis anquilosante", "Gota", "Lupus eritematoso sistémico", "Arteritis de la temporal", "Granulomatosis de Wegener", "Artritis séptica" ],
-                    "NEFROLOGÍA": [ "Lesión renal aguda", "Enfermedad renal crónica", "Nefropatía diabética", "Síndrome nefrítico y nefrootico", "Trastorno ácido-base", "Nefritis lúpica" ],
-                    "DERMATOLOGÍA": [ "Dermatitis atópica", "Dermatofitosis", "SSJ y NET", "Escabiosis - Sarna", "Impétigo", "Melanoma", "Psoriasis", "Carcinoma basocelular", "Acné vulgar", "Erisipela", "Urticaria", "Dermatitis por contacto", "Pediculosis capitis", "Síndrome de Ritter", "Carcinoma espinocelular" ],
-                    "PSIQUIATRÍA": [ "Abuso de sustancias", "Abstinencia alcohólica", "Trastorno por alcohol", "Esquizofrenia", "Estrés post traumático", "Trastornos del sueño", "Intento de suicidio", "Tdah", "Trastorno bipolar", "Trastornos de ansiedad", "Trastornos de conducta alimentaria", "Consumo de mariguana", "Violencia contra la mujer", "Autismo", "Síndrome de Munchausen" ],
-                    "GERIATRÍA": [ "Valoración geriátrica", "Alzheimer", "Delirium", "Demencia vascular", "Deterioro cognitivo", "Insomnio en el adulto mayor", "Síndrome de caídas", "Síndrome de fragilidad", "Maltrato en el adulto mayor", "Colapso del cuidador", "Depresión mayor" ],
-                    "GENÉTICA": [ "Síndrome de Down", "Síndrome de Klinefelter", "Síndrome de Turner", "Síndrome de Marfan", "Enfermedad de Wilson", "Síndrome de Dravet", "Síndrome de Lynch", "Síndrome de Peutz Jegher", "Von Hippel Lindau" ]
-                };
-
-                let allTopicsToSchedulePart1 = [];
-                Object.keys(topicsBySpecialtyPart1).reverse().forEach(specialty => {
-                    topicsBySpecialtyPart1[specialty].reverse().forEach(topic => {
-                        allTopicsToSchedulePart1.unshift({ specialty, topic });
-                    });
-                });
-
-                let plannedDaysPart1 = [];
-                let currentDatePart1 = new Date('2025-06-27T00:00:00');
+                const currentYear = new Date().getFullYear();
                 
-                while (allTopicsToSchedulePart1.length > 0) {
-                    currentDatePart1.setDate(currentDatePart1.getDate() - 1);
-                    const chunkSize = Math.min(allTopicsToSchedulePart1.length, Math.floor(Math.random() * (8 - 4 + 1)) + 4);
-                    const chunk = allTopicsToSchedulePart1.splice(0, chunkSize);
-                    
-                    const dayData = { date: currentDatePart1.toISOString().split('T')[0], blocks: [] };
-                    let lastSpecialty = null;
-                    chunk.forEach(item => {
-                        if (item.specialty !== lastSpecialty) {
-                            dayData.blocks.push({ subject: item.specialty, topics: [item.topic] });
-                            lastSpecialty = item.specialty;
-                        } else {
-                            dayData.blocks[dayData.blocks.length - 1].topics.push(item.topic);
-                        }
-                    });
-                    plannedDaysPart1.push(dayData);
-                }
-
-                const oftalmoDays = [
-                    {
-                        date: "2025-06-30",
-                        blocks: [ { subject: "OFTALMOLOGÍA", topics: ["Blefaritis", "Orzuelo", "Conjuntivitis (alergica, bacteriana, neonatal, viral)", "Chalazión", "Glaucoma de ángulo abierto", "Glaucoma de ángulo cerrado", "Glaucoma congénito"] } ]
-                    },
-                    {
-                        date: "2025-07-01",
-                        blocks: [ { subject: "OFTALMOLOGÍA", topics: ["Degeneración macular", "Desprendimiento de retina", "Retinopatía diabética", "Retinopatía hipertensiva", "Catarata", "Trauma ocular", "Ojo rojo"] } ]
-                    }
+                // 1. Listado completo de temas con su especialidad, en el orden exacto proporcionado.
+                const topicsList = [
+                    { specialty: 'TYO', topic: 'Osteoartritis' }, { specialty: 'TYO', topic: 'Osteomielitis' }, { specialty: 'TYO', topic: 'Osteosarcoma' },
+                    { specialty: 'TYO', topic: 'Sarcoma de Ewing' }, { specialty: 'TYO', topic: 'Tumores óseos malignos' }, { specialty: 'TYO', topic: 'Embolia grasa' },
+                    { specialty: 'TYO', topic: 'Costilla cervical' }, { specialty: 'TYO', topic: 'Esguince cervical' }, { specialty: 'TYO', topic: 'Lumbalgia' },
+                    { specialty: 'TYO', topic: 'Hernia de disco' }, { specialty: 'TYO', topic: 'Túnel del carpo' }, { specialty: 'TYO', topic: 'Síndrome de hombro doloroso' },
+                    { specialty: 'TYO', topic: 'Fractura de clavícula' }, { specialty: 'TYO', topic: 'Fractura de húmero proximal' }, { specialty: 'TYO', topic: 'Luxación glenohumeral' },
+                    { specialty: 'TYO', topic: 'Luxación de codo' }, { specialty: 'TYO', topic: 'Codo de niñera' }, { specialty: 'TYO', topic: 'Fracturas de codo' },
+                    { specialty: 'TYO', topic: 'Fracturas de antebrazo' }, { specialty: 'TYO', topic: 'Fractura de radio distal' }, { specialty: 'TYO', topic: 'Lesiones fisiarias' },
+                    { specialty: 'TYO', topic: 'Fracturas expuestas' }, { specialty: 'TYO', topic: 'Fractura de cadera' }, { specialty: 'TYO', topic: 'Epifisiolistesis femoral' },
+                    { specialty: 'TYO', topic: 'Legg Calvé Perthes' }, { specialty: 'TYO', topic: 'Luxación coxofemoral' }, { specialty: 'TYO', topic: 'Lesiones de rodilla' },
+                    { specialty: 'TYO', topic: 'Fractura de diáfisis de tibia' }, { specialty: 'TYO', topic: 'Esguince de tobillo' }, { specialty: 'TYO', topic: 'Fractura de tobillo' },
+                    { specialty: 'TYO', topic: 'Rotura de talón de Aquiles' }, { specialty: 'TYO', topic: 'Pie equino varo' }, { specialty: 'TYO', topic: 'Pie plano' },
+                    { specialty: 'CARDIOLOGÍA', topic: 'Fiebre reumática' }, { specialty: 'CARDIOLOGÍA', topic: 'Estenosis aórtica' }, { specialty: 'CARDIOLOGÍA', topic: 'Insuficiencia aórtica' },
+                    { specialty: 'CARDIOLOGÍA', topic: 'Estenosis mitral' }, { specialty: 'CARDIOLOGÍA', topic: 'Insuficiencia mitral' }, { specialty: 'CARDIOLOGÍA', topic: 'Otras valvulopatías' },
+                    { specialty: 'CARDIOLOGÍA', topic: 'Pericarditis' }, { specialty: 'CARDIOLOGÍA', topic: 'Endocarditis infecciosa' }, { specialty: 'CARDIOLOGÍA', topic: 'Infarto agudo de miocardio' },
+                    { specialty: 'CARDIOLOGÍA', topic: 'Enfermedad coronaria' }, { specialty: 'CARDIOLOGÍA', topic: 'Disección aórtica' }, { specialty: 'CARDIOLOGÍA', topic: 'Aneurisma aórtico abdominal' },
+                    { specialty: 'CARDIOLOGÍA', topic: 'Cor pulmonar crónico' }, { specialty: 'CARDIOLOGÍA', topic: 'Hipertensión arterial sistémica' }, { specialty: 'CARDIOLOGÍA', topic: 'Crisis hipertensivas' },
+                    { specialty: 'CARDIOLOGÍA', topic: 'Hipertensión pulmonar' }, { specialty: 'CARDIOLOGÍA', topic: 'Insuficiencia cardíaca aguda' }, { specialty: 'CARDIOLOGÍA', topic: 'Insuficiencia cardíaca crónica' },
+                    { specialty: 'CARDIOLOGÍA', topic: 'Edema pulmonar' }, { specialty: 'CARDIOLOGÍA', topic: 'Hipotensión ortostática' }, { specialty: 'CARDIOLOGÍA', topic: 'Rehabilitación cardíaca' },
+                    { specialty: 'ANGIOLOGÍA', topic: 'Enfermedad arterial periférica' }, { specialty: 'ANGIOLOGÍA', topic: 'Insuficiencia venosa' }, { specialty: 'ANGIOLOGÍA', topic: 'Pie diabético' },
+                    { specialty: 'ANGIOLOGÍA', topic: 'Trombosis venosa profunda' }, { specialty: 'ANGIOLOGÍA', topic: 'Tromboembolia pulmonar' }, { specialty: 'ANGIOLOGÍA', topic: 'Paget Schroetter' },
+                    { specialty: 'ANGIOLOGÍA', topic: 'Tromboembolia venosa en obstetricia' }, { specialty: 'ANGIOLOGÍA', topic: 'Úlceras por presión' },
+                    { specialty: 'ACLS', topic: 'Soporte vital básico' }, { specialty: 'ACLS', topic: 'RCP' }, { specialty: 'ACLS', topic: 'Taquicardia ACLS' },
+                    { specialty: 'ACLS', topic: 'Taquicardia supraventricular' }, { specialty: 'ACLS', topic: 'Bloqueos AV' }, { specialty: 'ACLS', topic: 'Bradicardia' },
+                    { specialty: 'ACLS', topic: 'Fibrilación auricular' }, { specialty: 'ACLS', topic: 'Fibrilación ventricular' }, { specialty: 'ACLS', topic: 'Síndrome de WPW' },
+                    { specialty: 'ACLS', topic: 'PLS' }, { specialty: 'ACLS', topic: 'Ahogamiento' },
+                    { specialty: 'ATLS', topic: 'Politrauma' }, { specialty: 'ATLS', topic: 'Tipos de shock' }, { specialty: 'ATLS', topic: 'Choque hipovolémico' },
+                    { specialty: 'ATLS', topic: 'Shock neurogénico' }, { specialty: 'ATLS', topic: 'TCE adultos' }, { specialty: 'ATLS', topic: 'TCE pediátrico' },
+                    { specialty: 'ATLS', topic: 'Fracturas de cráneo' }, { specialty: 'ATLS', topic: 'Trauma torácico' }, { specialty: 'ATLS', topic: 'Hemotórax' },
+                    { specialty: 'ATLS', topic: 'Neumotórax a tensión' }, { specialty: 'ATLS', topic: 'Neumotórax abierto' }, { specialty: 'ATLS', topic: 'Neumotórax simple' },
+                    { specialty: 'ATLS', topic: 'Taponamiento cardíaco' }, { specialty: 'ATLS', topic: 'Lesión traqueobronquial' }, { specialty: 'ATLS', topic: 'Trauma abdominal' },
+                    { specialty: 'ATLS', topic: 'Ruptura diafragmática' }, { specialty: 'ATLS', topic: 'Trauma esplénico' }, { specialty: 'ATLS', topic: 'Trauma espinal' },
+                    { specialty: 'ATLS', topic: 'Trauma pélvico' }, { specialty: 'ATLS', topic: 'Trauma obstétrico' }, { specialty: 'ATLS', topic: 'Quemaduras' },
+                    { specialty: 'ATLS', topic: 'Gran quemado' }, { specialty: 'ATLS', topic: 'Catéter venoso central' }, { specialty: 'ATLS', topic: 'Hipotermia' },
+                    { specialty: 'TOXICOLOGÍA', topic: 'Manejo de intoxicaciones' }, { specialty: 'TOXICOLOGÍA', topic: 'Toxíndromes' }, { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por benzodiacepinas' },
+                    { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por organofosforados' }, { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por paracetamol' }, { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por salicilatos' },
+                    { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por etanol' }, { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por monóxido de carbono' }, { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por opiáceos' },
+                    { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por anfetaminas' }, { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por fentanilo' }, { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por DMT' },
+                    { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por hidrocarburos' }, { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por metales pesados' }, { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por plomo' },
+                    { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación por alcoholes' }, { specialty: 'TOXICOLOGÍA', topic: 'Ingesta de cáusticos' }, { specialty: 'TOXICOLOGÍA', topic: 'Intoxicación alimentaria' },
+                    { specialty: 'TOXICOLOGÍA', topic: 'Anafilaxia' }, { specialty: 'TOXICOLOGÍA', topic: 'Picadura de alacrán' }, { specialty: 'TOXICOLOGÍA', topic: 'Mordedura de serpiente' },
+                    { specialty: 'TOXICOLOGÍA', topic: 'Lactrodectus' }, { specialty: 'TOXICOLOGÍA', topic: 'Loxosceles' }, { specialty: 'TOXICOLOGÍA', topic: 'Picadura de himenópteros' },
+                    { specialty: 'TOXICOLOGÍA', topic: 'Golpe de calor' },
+                    { specialty: 'GASTROENTEROLOGÍA', topic: 'Reflujo ERGE' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Enfermedad ácido péptica' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Síndrome de intestino irritable' },
+                    { specialty: 'GASTROENTEROLOGÍA', topic: 'Dispepsia funcional' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Mallory Weiss' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Zollinger Ellison' },
+                    { specialty: 'GASTROENTEROLOGÍA', topic: 'Acalasia' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Esófago de Barrett' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Enfermedad celíaca' },
+                    { specialty: 'GASTROENTEROLOGÍA', topic: 'Enfermedad de Crohn' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Colitis ulcerativa' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Enfermedad diverticular' },
+                    { specialty: 'GASTROENTEROLOGÍA', topic: 'Sangrado TDA' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Sangrado TDB' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Varices esofágicas' },
+                    { specialty: 'GASTROENTEROLOGÍA', topic: 'EHGNA' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Hepatitis A' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Hepatitis B' },
+                    { specialty: 'GASTROENTEROLOGÍA', topic: 'Hepatitis C' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Hepatitis autoinmune' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Absceso hepático amebiano' },
+                    { specialty: 'GASTROENTEROLOGÍA', topic: 'Absceso hepático piógeno' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Cirrosis hepática' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Insuficiencia hepática' },
+                    { specialty: 'GASTROENTEROLOGÍA', topic: 'Ascitis' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Encefalopatía hepática' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Pancreatitis aguda' },
+                    { specialty: 'GASTROENTEROLOGÍA', topic: 'Pancreatitis crónica' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Cáncer gástrico' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Cáncer de esófago' },
+                    { specialty: 'GASTROENTEROLOGÍA', topic: 'Cáncer de páncreas' }, { specialty: 'GASTROENTEROLOGÍA', topic: 'Carcinoma hepatocelular' },
+                    { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Apendicitis aguda' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Apendicitis en el embarazo' },
+                    { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Hernias' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Hernia inguinal' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Hernia femoral' },
+                    { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Hernia hiatal' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Hernia umbilical' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Hernia ventral' },
+                    { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Colecistitis aguda' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Colelitiasis' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Coledocolitiasis' },
+                    { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Colangitis aguda' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Oclusión intestinal' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Isquemia intestinal' },
+                    { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Vólvulo de sigmoides' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Vólvulo de ciego' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Enfermedad hemorroidal' },
+                    { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Fístula anal' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Fisura anal' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Absceso anal' },
+                    { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Quiste pilonidal' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Cáncer colorrectal' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Poliposis adenomatosa familiar PAF' },
+                    { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Fístulas biliointestinales' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Colangiocarcinoma' }, { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Complicaciones post Qx' },
+                    { specialty: 'CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA', topic: 'Heridas quirúrgicas' },
+                    { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Atresia esofágica' }, { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Atresia duodenal' }, { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Atresia yeyunoileal' },
+                    { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Atresia biliar' }, { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Atresia de coanas' }, { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Estenosis pilórica' },
+                    { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Hernia diafragmática congénita' }, { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Malrotación intestinal' }, { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Invaginación intestinal' },
+                    { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Divertículo de Meckel' }, { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Hirschsprung' }, { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Enfermedad de Hirschsprung' },
+                    { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Patología umbilical' }, { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Criptorquidia' }, { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Espina bífida' },
+                    { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Malformaciones rectales' }, { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Retinoblastoma' }, { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Nefroblastoma' },
+                    { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Neuroblastoma' }, { specialty: 'CIRUGÍA PEDIÁTRICA', topic: 'Tumor abdominal' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Amenorreas primarias' }, { specialty: 'GINECOLOGÍA', topic: 'Amenorreas secundarias' }, { specialty: 'GINECOLOGÍA', topic: 'Sangrado uterino anormal' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Dismenorrea aguda' }, { specialty: 'GINECOLOGÍA', topic: 'Adenomiosis' }, { specialty: 'GINECOLOGÍA', topic: 'Endometriosis' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Miomatosis uterina' }, { specialty: 'GINECOLOGÍA', topic: 'Hiperplasia endometrial' }, { specialty: 'GINECOLOGÍA', topic: 'Quiste de ovario benigno' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Torsión ovárica' }, { specialty: 'GINECOLOGÍA', topic: 'Ovario poliquístico' }, { specialty: 'GINECOLOGÍA', topic: 'Enfermedad pélvica inflamatoria' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Hidrosalpinx' }, { specialty: 'GINECOLOGÍA', topic: 'Fitz-Hugh-Curtis' }, { specialty: 'GINECOLOGÍA', topic: 'Vaginitis bacteriana' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Vaginitis infecciosa' }, { specialty: 'GINECOLOGÍA', topic: 'Tricomoniasis' }, { specialty: 'GINECOLOGÍA', topic: 'Bartolinitis' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Candidiasis vulvovaginal' }, { specialty: 'GINECOLOGÍA', topic: 'Chlamydia' }, { specialty: 'GINECOLOGÍA', topic: 'Mastitis' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Mastopatía fibroquística' }, { specialty: 'GINECOLOGÍA', topic: 'Fibroadenoma' }, { specialty: 'GINECOLOGÍA', topic: 'Papiloma intraductal' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Quiste mamario' }, { specialty: 'GINECOLOGÍA', topic: 'Patología mamaria benigna' }, { specialty: 'GINECOLOGÍA', topic: 'Osteoporosis post menopausia' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Menopausia y climaterio' }, { specialty: 'GINECOLOGÍA', topic: 'Insuficiencia ovárica primaria' }, { specialty: 'GINECOLOGÍA', topic: 'Anticonceptivos generalidades' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Anticonceptivos GPC' }, { specialty: 'GINECOLOGÍA', topic: 'Anticonceptivos hormonales combinados' }, { specialty: 'GINECOLOGÍA', topic: 'Anticoncepción de emergencia' },
+                    { specialty: 'GINECOLOGÍA', topic: 'DIU de cobre' }, { specialty: 'GINECOLOGÍA', topic: 'DIU de levonorgestrel' }, { specialty: 'GINECOLOGÍA', topic: 'Implante subdérmico' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Progestágenos solos' }, { specialty: 'GINECOLOGÍA', topic: 'Lactancia como anticonceptivo' }, { specialty: 'GINECOLOGÍA', topic: 'Condón' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Vasectomía' }, { specialty: 'GINECOLOGÍA', topic: 'Oclusión tubaria bilateral OTB' }, { specialty: 'GINECOLOGÍA', topic: 'Infertilidad' },
+                    { specialty: 'GINECOLOGÍA', topic: 'Cistocele e incontinencia' },
+                    { specialty: 'ONCOGINE', topic: 'Tamizaje cáncer de mama' }, { specialty: 'ONCOGINE', topic: 'Cáncer de mama' }, { specialty: 'ONCOGINE', topic: 'Cáncer cérvicouterino' },
+                    { specialty: 'ONCOGINE', topic: 'Cáncer de endometrio' }, { specialty: 'ONCOGINE', topic: 'Cáncer de ovario' }, { specialty: 'ONCOGINE', topic: 'Cáncer de vagina' },
+                    { specialty: 'ONCOGINE', topic: 'Tumores anexiales' },
+                    { specialty: 'OBSTETRICIA', topic: 'Control prenatal' }, { specialty: 'OBSTETRICIA', topic: 'Aloinmunización materna' }, { specialty: 'OBSTETRICIA', topic: 'Estática fetal' },
+                    { specialty: 'OBSTETRICIA', topic: 'Tipos de pelvis' }, { specialty: 'OBSTETRICIA', topic: 'Atención del parto' }, { specialty: 'OBSTETRICIA', topic: 'Manejo activo del parto' },
+                    { specialty: 'OBSTETRICIA', topic: 'Cesárea' }, { specialty: 'OBSTETRICIA', topic: 'Parto pretérmino' }, { specialty: 'OBSTETRICIA', topic: 'Puerperio fisiológico' },
+                    { specialty: 'OBSTETRICIA', topic: 'Líquido amniótico' }, { specialty: 'OBSTETRICIA', topic: 'Ruptura prematura de membranas' }, { specialty: 'OBSTETRICIA', topic: 'Corioamnionitis' },
+                    { specialty: 'OBSTETRICIA', topic: 'Distocias' }, { specialty: 'OBSTETRICIA', topic: 'Embarazo múltiple' }, { specialty: 'OBSTETRICIA', topic: 'Endometritis puerperal' },
+                    { specialty: 'OBSTETRICIA', topic: 'Hiperémesis gravídica' }, { specialty: 'OBSTETRICIA', topic: 'Insuficiencia cervical' }, { specialty: 'OBSTETRICIA', topic: 'Muerte fetal' },
+                    { specialty: 'OBSTETRICIA', topic: 'Enfermedades hipertensivas del embarazo' }, { specialty: 'OBSTETRICIA', topic: 'Preeclampsia sin datos de severidad' }, { specialty: 'OBSTETRICIA', topic: 'Síndrome de HELLP' },
+                    { specialty: 'OBSTETRICIA', topic: 'Diabetes gestacional' }, { specialty: 'OBSTETRICIA', topic: 'IVU en el embarazo' }, { specialty: 'OBSTETRICIA', topic: 'Restricción del crecimiento intrauterino' },
+                    { specialty: 'OBSTETRICIA', topic: 'Sepsis puerperal' }, { specialty: 'OBSTETRICIA', topic: 'Síndrome de Sheehan' }, { specialty: 'OBSTETRICIA', topic: 'Depresión posparto' },
+                    { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Generalidades de hemorragias' }, { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Hemorragia postparto' }, { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Desgarro perineal' },
+                    { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Amenaza de aborto' }, { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Aborto espontáneo' }, { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Acretismo placentario' },
+                    { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Atonía uterina' }, { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Choque hemorrágico en obstetricia' }, { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Desprendimiento prematuro de placenta normoinserta' },
+                    { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Embarazo ectópico' }, { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Placenta previa' }, { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Ruptura uterina' },
+                    { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Vasa previa' }, { specialty: 'HEMORRAGIAS OBSTÉTRICAS', topic: 'Enfermedad trofoblástica gestacional' },
+                    { specialty: 'NEONATOLOGÍA', topic: 'APGAR' }, { specialty: 'NEONATOLOGÍA', topic: 'Reanimación neonatal' }, { specialty: 'NEONATOLOGÍA', topic: 'Prematuro sano' },
+                    { specialty: 'NEONATOLOGÍA', topic: 'Recién nacido de término' }, { specialty: 'NEONATOLOGÍA', topic: 'Apnea del prematuro' }, { specialty: 'NEONATOLOGÍA', topic: 'Asfixia neonatal' },
+                    { specialty: 'NEONATOLOGÍA', topic: 'Síndrome de dificultad respiratoria' }, { specialty: 'NEONATOLOGÍA', topic: 'Taquipnea transitoria del recién nacido' }, { specialty: 'NEONATOLOGÍA', topic: 'Síndrome de aspiración de meconio' },
+                    { specialty: 'NEONATOLOGÍA', topic: 'Displasia broncopulmonar' }, { specialty: 'NEONATOLOGÍA', topic: 'Silverman Anderson' }, { specialty: 'NEONATOLOGÍA', topic: 'Maduración pulmonar' },
+                    { specialty: 'NEONATOLOGÍA', topic: 'Encefalopatía hipóxica' }, { specialty: 'NEONATOLOGÍA', topic: 'Enfermedad hemorrágica del recién nacido' }, { specialty: 'NEONATOLOGÍA', topic: 'Enterocolitis necrotizante' },
+                    { specialty: 'NEONATOLOGÍA', topic: 'Hipoacusia neonatal' }, { specialty: 'NEONATOLOGÍA', topic: 'Hipoglucemia neonatal' }, { specialty: 'NEONATOLOGÍA', topic: 'Ictericia neonatal' },
+                    { specialty: 'NEONATOLOGÍA', topic: 'Muerte súbita del lactante' }, { specialty: 'NEONATOLOGÍA', topic: 'Sepsis neonatal' }, { specialty: 'NEONATOLOGÍA', topic: 'Tamiz neonatal' },
+                    { specialty: 'NEONATOLOGÍA', topic: 'Lesiones de plexo braquial obstétrico' }, { specialty: 'NEONATOLOGÍA', topic: 'Lesiones extracraneales' }, { specialty: 'NEONATOLOGÍA', topic: 'Displasia del desarrollo de la cadera DDC' },
+                    { specialty: 'CONGENITAS', topic: 'Cardiopatías congénitas' }, { specialty: 'CONGENITAS', topic: 'Tetralogía de Fallot' }, { specialty: 'CONGENITAS', topic: 'Coartación aórtica' },
+                    { specialty: 'CONGENITAS', topic: 'Persistencia del conducto arterioso' }, { specialty: 'CONGENITAS', topic: 'Fibrosis quística' }, { specialty: 'CONGENITAS', topic: 'Fenilcetonuria' },
+                    { specialty: 'CONGENITAS', topic: 'Galactosemia clásica' }, { specialty: 'CONGENITAS', topic: 'STORCH' }, { specialty: 'CONGENITAS', topic: 'STORCH Citomegalovirus' },
+                    { specialty: 'CONGENITAS', topic: 'STORCH Herpes simple' }, { specialty: 'CONGENITAS', topic: 'STORCH Rubéola congénita' }, { specialty: 'CONGENITAS', topic: 'STORCH Sífilis congénita' },
+                    { specialty: 'CONGENITAS', topic: 'STORCH Toxoplasmosis' }, { specialty: 'CONGENITAS', topic: 'STORCH Varicela congénita' },
+                    { specialty: 'ESCOLAR', topic: 'Control de niño sano' }, { specialty: 'ESCOLAR', topic: 'Etapas del crecimiento' }, { specialty: 'ESCOLAR', topic: 'Talla baja' },
+                    { specialty: 'ESCOLAR', topic: 'Alergia alimentaria' }, { specialty: 'ESCOLAR', topic: 'Cuerpo extraño' }, { specialty: 'ESCOLAR', topic: 'Dermatitis del pañal' },
+                    { specialty: 'ESCOLAR', topic: 'Estreñimiento funcional' }, { specialty: 'ESCOLAR', topic: 'Hiperplasia adrenal congénita' }, { specialty: 'ESCOLAR', topic: 'Hipotiroidismo congénito' },
+                    { specialty: 'ESCOLAR', topic: 'Maltrato infantil' }, { specialty: 'ESCOLAR', topic: 'Mucopolisacaridosis' }, { specialty: 'ESCOLAR', topic: 'Reflujo gastroesofágico del lactante' },
+                    { specialty: 'NUTRICIÓN PEDIÁTRICA', topic: 'Lactancia materna' }, { specialty: 'NUTRICIÓN PEDIÁTRICA', topic: 'Alimentación complementaria' }, { specialty: 'NUTRICIÓN PEDIÁTRICA', topic: 'Desnutrición pediátrica' },
+                    { specialty: 'NUTRICIÓN PEDIÁTRICA', topic: 'Deficiencia de vitamina A' }, { specialty: 'NUTRICIÓN PEDIÁTRICA', topic: 'Hipovitaminosis' }, { specialty: 'NUTRICIÓN PEDIÁTRICA', topic: 'Raquitismo carencial' },
+                    { specialty: 'NUTRICIÓN PEDIÁTRICA', topic: 'Pelagra en niños' }, { specialty: 'NUTRICIÓN PEDIÁTRICA', topic: 'Intolerancia a la lactosa' }, { specialty: 'NUTRICIÓN PEDIÁTRICA', topic: 'Obesidad en escolares' },
+                    { specialty: 'NUTRICIÓN PEDIÁTRICA', topic: 'Síndrome metabólico en niños' },
+                    { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Adenitis mesentérica' }, { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Onfalitis' }, { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Exantemáticas Diferencial' },
+                    { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Eritema infeccioso' }, { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Escarlatina' }, { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Exantema súbito' },
+                    { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Enfermedad de Kawasaki' }, { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Síndrome mano pie boca' }, { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Rubéola' },
+                    { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Sarampión' }, { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Varicela' }, { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Parotiditis' },
+                    { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Bronquiolitis' }, { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Epiglotitis' }, { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Laringotraqueitis CRUP' },
+                    { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Mononucleosis infecciosa' }, { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'Tos ferina' }, { specialty: 'INFECTOLOGÍA PEDIÁTRICA', topic: 'IVU en menores' },
+                    { specialty: 'VACUNAS', topic: 'Vacunas generalidades' }, { specialty: 'VACUNAS', topic: 'Tipos de vacunas' }, { specialty: 'VACUNAS', topic: 'Vacunación universal' },
+                    { specialty: 'VACUNAS', topic: 'Aplicación de vacunas' }, { specialty: 'VACUNAS', topic: 'Vacuna para personal de salud' }, { specialty: 'VACUNAS', topic: 'Vacunas en el embarazo' },
+                    { specialty: 'VACUNAS', topic: 'Esquema de vacunación' }, { specialty: 'VACUNAS', topic: 'BCG' }, { specialty: 'VACUNAS', topic: 'Hepatitis A' },
+                    { specialty: 'VACUNAS', topic: 'Hepatitis B' }, { specialty: 'VACUNAS', topic: 'Hexavalente' }, { specialty: 'VACUNAS', topic: 'Influenza' },
+                    { specialty: 'VACUNAS', topic: 'Neumocócica' }, { specialty: 'VACUNAS', topic: 'Rotavirus' }, { specialty: 'VACUNAS', topic: 'Sabin' },
+                    { specialty: 'VACUNAS', topic: 'Salmonella' }, { specialty: 'VACUNAS', topic: 'DPT' }, { specialty: 'VACUNAS', topic: 'SRP' },
+                    { specialty: 'VACUNAS', topic: 'Tétanos' }, { specialty: 'VACUNAS', topic: 'Varicela' }, { specialty: 'VACUNAS', topic: 'VPH' },
                 ];
 
-                const topicsBySpecialtyPart2 = {
-                    "TYO": ["Osteoartritis", "Osteomielitis", "Osteosarcoma", "Sarcoma de Ewing", "Tumores óseos malignos", "Embolia grasa", "Costilla cervical", "Esguince cervical", "Lumbalgia", "Hernia de disco", "Túnel del carpo", "Síndrome de hombro doloroso", "Fractura de clavícula", "Fractura de húmero proximal", "Luxación glenohumeral", "Luxación de codo", "Codo de niñera", "Fracturas de codo", "Fracturas de antebrazo", "Fractura de radio distal", "Lesiones fisiarias", "Fracturas expuestas", "Fractura de cadera", "Epifisiolistesis femoral", "Legg Calvé Perthes", "Luxación coxofemoral", "Lesiones de rodilla", "Fractura de diáfisis de tibia", "Esguince de tobillo", "Fractura de tobillo", "Rotura de talón de Aquiles", "Pie equino varo", "Pie plano"],
-                    "CARDIOLOGÍA": ["Fiebre reumática", "Estenosis aórtica", "Insuficiencia aórtica", "Estenosis mitral", "Insuficiencia mitral", "Otras valvulopatías", "Pericarditis", "Endocarditis infecciosa", "Infarto agudo de miocardio", "Enfermedad coronaria", "Disección aórtica", "Aneurisma aórtico abdominal", "Cor pulmonar crónico", "Hipertensión arterial sistémica", "Crisis hipertensivas", "Hipertensión pulmonar", "Insuficiencia cardíaca aguda", "Insuficiencia cardíaca crónica", "Edema pulmonar", "Hipotensión ortostática", "Rehabilitación cardíaca"],
-                    "ANGIOLOGÍA": ["Enfermedad arterial periférica", "Insuficiencia venosa", "Pie diabético", "Trombosis venosa profunda", "Tromboembolia pulmonar", "Paget Schroetter", "Tromboembolia venosa en obstetricia", "Úlceras por presión"],
-                    "ACLS": ["Soporte vital básico", "RCP", "Taquicardia ACLS", "Taquicardia supraventricular", "Bloqueos AV", "Bradicardia", "Fibrilación auricular", "Fibrilación ventricular", "Síndrome de WPW", "PLS", "Ahogamiento"],
-                    "ATLS": ["Politrauma", "Tipos de shock", "Choque hipovolémico", "Shock neurogénico", "TCE adultos", "TCE pediátrico", "Fracturas de cráneo", "Trauma torácico", "Hemotórax", "Neumotórax a tensión", "Neumotórax abierto", "Neumotórax simple", "Taponamiento cardíaco", "Lesión traqueobronquial", "Trauma abdominal", "Ruptura diafragmática", "Trauma esplénico", "Trauma espinal", "Trauma pélvico", "Trauma obstétrico", "Quemaduras", "Gran quemado", "Catéter venoso central", "Hipotermia"],
-                    "TOXICOLOGÍA": ["Manejo de intoxicaciones", "Toxíndromes", "Intoxicación por benzodiacepinas", "Intoxicación por organofosforados", "Intoxicación por paracetamol", "Intoxicación por salicilatos", "Intoxicación por etanol", "Intoxicación por monóxido de carbono", "Intoxicación por opiáceos", "Intoxicación por anfetaminas", "Intoxicación por fentanilo", "Intoxicación por DMT", "Intoxicación por hidrocarburos", "Intoxicación por metales pesados", "Intoxicación por plomo", "Intoxicación por alcoholes", "Ingesta de cáusticos", "Intoxicación alimentaria", "Anafilaxia", "Picadura de alacrán", "Mordedura de serpiente", "Lactrodectus", "Loxosceles", "Picadura de himenópteros", "Golpe de calor"],
-                    "GASTROENTEROLOGÍA": ["Reflujo ERGE", "Enfermedad ácido péptica", "Síndrome de intestino irritable", "Dispepsia funcional", "Mallory Weiss", "Zollinger Ellison", "Acalasia", "Esófago de Barrett", "Enfermedad celíaca", "Enfermedad de Crohn", "Colitis ulcerativa", "Enfermedad diverticular", "Sangrado TDA", "Sangrado TDB", "Varices esofágicas", "EHGNA", "Hepatitis A", "Hepatitis B", "Hepatitis C", "Hepatitis autoinmune", "Absceso hepático amebiano", "Absceso hepático piógeno", "Cirrosis hepática", "Insuficiencia hepática", "Ascitis", "Encefalopatía hepática", "Pancreatitis aguda", "Pancreatitis crónica", "Cáncer gástrico", "Cáncer de esófago", "Cáncer de páncreas", "Carcinoma hepatocelular"],
-                    "CIRUGÍA ABDOMINAL Y COLOPROCTOLOGÍA": ["Apendicitis aguda", "Apendicitis en el embarazo", "Hernias", "Hernia inguinal", "Hernia femoral", "Hernia hiatal", "Hernia umbilical", "Hernia ventral", "Colecistitis aguda", "Colelitiasis", "Coledocolitiasis", "Colangitis aguda", "Oclusión intestinal", "Isquemia intestinal", "Vólvulo de sigmoides", "Vólvulo de ciego", "Enfermedad hemorroidal", "Fístula anal", "Fisura anal", "Absceso anal", "Quiste pilonidal", "Cáncer colorrectal", "Poliposis adenomatosa familiar PAF", "Fístulas biliointestinales", "Colangiocarcinoma", "Complicaciones post Qx", "Heridas quirúrgicas"],
-                    "CIRUGÍA PEDIÁTRICA": ["Atresia esofágica", "Atresia duodenal", "Atresia yeyunoileal", "Atresia biliar", "Atresia de coanas", "Estenosis pilórica", "Hernia diafragmática congénita", "Malrotación intestinal", "Invaginación intestinal", "Divertículo de Meckel", "Hirschsprung", "Enfermedad de Hirschsprung", "Patología umbilical", "Criptorquidia", "Espina bífida", "Malformaciones rectales", "Retinoblastoma", "Nefroblastoma", "Neuroblastoma", "Tumor abdominal"],
-                    "GINECOLOGÍA": ["Amenorreas primarias", "Amenorreas secundarias", "Sangrado uterino anormal", "Dismenorrea aguda", "Adenomiosis", "Endometriosis", "Miomatosis uterina", "Hiperplasia endometrial", "Quiste de ovario benigno", "Torsión ovárica", "Ovario poliquístico", "Enfermedad pélvica inflamatoria", "Hidrosalpinx", "Fitz-Hugh-Curtis", "Vaginitis bacteriana", "Vaginitis infecciosa", "Tricomoniasis", "Bartolinitis", "Candidiasis vulvovaginal", "Chlamydia", "Mastitis", "Mastopatía fibroquística", "Fibroadenoma", "Papiloma intraductal", "Quiste mamario", "Patología mamaria benigna", "Osteoporosis post menopausia", "Menopausia y climaterio", "Insuficiencia ovárica primaria", "Anticonceptivos generalidades", "Anticonceptivos GPC", "Anticonceptivos hormonales combinados", "Anticoncepción de emergencia", "DIU de cobre", "DIU de levonorgestrel", "Implante subdérmico", "Progestágenos solos", "Lactancia como anticonceptivo", "Condón", "Vasectomía", "Oclusión tubaria bilateral OTB", "Infertilidad", "Cistocele e incontinencia"],
-                    "ONCOGINE": ["Tamizaje cáncer de mama", "Cáncer de mama", "Cáncer cérvicouterino", "Cáncer de endometrio", "Cáncer de ovario", "Cáncer de vagina", "Tumores anexiales"],
-                    "OBSTETRICIA": ["Control prenatal", "Aloinmunización materna", "Estática fetal", "Tipos de pelvis", "Atención del parto", "Manejo activo del parto", "Cesárea", "Parto pretérmino", "Puerperio fisiológico", "Líquido amniótico", "Ruptura prematura de membranas", "Corioamnionitis", "Distocias", "Embarazo múltiple", "Endometritis puerperal", "Hiperémesis gravídica", "Insuficiencia cervical", "Muerte fetal", "Enfermedades hipertensivas del embarazo", "Preeclampsia sin datos de severidad", "Síndrome de HELLP", "Diabetes gestacional", "IVU en el embarazo", "Restricción del crecimiento intrauterino", "Sepsis puerperal", "Síndrome de Sheehan", "Depresión posparto"],
-                    "HEMORRAGIAS OBSTÉTRICAS": ["Generalidades de hemorragias", "Hemorragia postparto", "Desgarro perineal", "Amenaza de aborto", "Aborto espontáneo", "Acretismo placentario", "Atonía uterina", "Choque hemorrágico en obstetricia", "Desprendimiento prematuro de placenta normoinserta", "Embarazo ectópico", "Placenta previa", "Ruptura uterina", "Vasa previa", "Enfermedad trofoblástica gestacional"],
-                    "NEONATOLOGÍA": ["APGAR", "Reanimación neonatal", "Prematuro sano", "Recién nacido de término", "Apnea del prematuro", "Asfixia neonatal", "Síndrome de dificultad respiratoria", "Taquipnea transitoria del recién nacido", "Síndrome de aspiración de meconio", "Displasia broncopulmonar", "Silverman Anderson", "Maduración pulmonar", "Encefalopatía hipóxica", "Enfermedad hemorrágica del recién nacido", "Enterocolitis necrotizante", "Hipoacusia neonatal", "Hipoglucemia neonatal", "Ictericia neonatal", "Muerte súbita del lactante", "Sepsis neonatal", "Tamiz neonatal", "Lesiones de plexo braquial obstétrico", "Lesiones extracraneales", "Displasia del desarrollo de la cadera DDC"],
-                    "CONGENITAS": ["Cardiopatías congénitas", "Tetralogía de Fallot", "Coartación aórtica", "Persistencia del conducto arterioso", "Fibrosis quística", "Fenilcetonuria", "Galactosemia clásica", "STORCH", "STORCH Citomegalovirus", "STORCH Herpes simple", "STORCH Rubéola congénita", "STORCH Sífilis congénita", "STORCH Toxoplasmosis", "STORCH Varicela congénita"],
-                    "ESCOLAR": ["Control de niño sano", "Etapas del crecimiento", "Talla baja", "Alergia alimentaria", "Cuerpo extraño", "Dermatitis del pañal", "Estreñimiento funcional", "Hiperplasia adrenal congénita", "Hipotiroidismo congénito", "Maltrato infantil", "Mucopolisacaridosis", "Reflujo gastroesofágico del lactante"],
-                    "NUTRICIÓN PEDIÁTRICA": ["Lactancia materna", "Alimentación complementaria", "Desnutrición pediátrica", "Deficiencia de vitamina A", "Hipovitaminosis", "Raquitismo carencial", "Pelagra en niños", "Intolerancia a la lactosa", "Obesidad en escolares", "Síndrome metabólico en niños"],
-                    "INFECTOLOGÍA PEDIÁTRICA": ["Adenitis mesentérica", "Onfalitis", "Exantemáticas Diferencial", "Eritema infeccioso", "Escarlatina", "Exantema súbito", "Enfermedad de Kawasaki", "Síndrome mano pie boca", "Rubéola", "Sarampión", "Varicela", "Parotiditis", "Bronquiolitis", "Epiglotitis", "Laringotraqueitis CRUP", "Mononucleosis infecciosa", "Tos ferina", "IVU en menores"],
-                    "VACUNAS": ["Vacunas generalidades", "Tipos de vacunas", "Vacunación universal", "Aplicación de vacunas", "Vacuna para personal de salud", "Vacunas en el embarazo", "Esquema de vacunación", "BCG", "Hepatitis A", "Hepatitis B", "Hexavalente", "Influenza", "Neumocócica", "Rotavirus", "Sabin", "Salmonella", "DPT", "SRP", "Tétanos", "Varicela", "VPH"]
-                };
+                // 2. Definir el rango de fechas.
+                const startDate = new Date(`${currentYear}-07-07T12:00:00Z`);
+                const endDate = new Date(`${currentYear}-09-19T12:00:00Z`);
                 
-                // **** MODIFICACIÓN CLAVE: Se deja vacío el plan de la segunda parte ****
-                let plannedDaysPart2 = []; // Dejamos este array vacío para que no se generen temas después de oftalmología.
+                let plannedDays = [];
+                let topicIndex = 0;
+                let currentDate = new Date(startDate);
 
-                let finalPlannedDays = [...plannedDaysPart1.reverse(), ...oftalmoDays, ...plannedDaysPart2];
-                
-                const daysAsMap = new Map(finalPlannedDays.map(day => [day.date, day]));
-                let fullPlan = [];
-                // Asegurarnos de que el plan comienza en la fecha correcta, incluso si es el primer día.
-                let startDateForLoop = plannedDaysPart1.length > 0 ? new Date(plannedDaysPart1[0].date) : new Date(oftalmoDays[0].date);
-                let cursorDate = new Date(startDateForLoop);
-                let finalDate = new Date('2025-09-30T00:00:00');
+                // 3. Calcular la distribución.
+                const totalTopics = topicsList.length;
+                const totalDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                const baseTopicsPerDay = Math.floor(totalTopics / totalDays);
+                const extraDays = totalTopics % totalDays;
 
-                while(cursorDate <= finalDate) {
-                    const dateStr = cursorDate.toISOString().split('T')[0];
-                    if(daysAsMap.has(dateStr)) {
-                        fullPlan.push(daysAsMap.get(dateStr));
+                let dayCounter = 0;
+                while (currentDate <= endDate && topicIndex < totalTopics) {
+                    const topicsForThisDay = baseTopicsPerDay + (dayCounter < extraDays ? 1 : 0);
+                    const chunk = topicsList.slice(topicIndex, topicIndex + topicsForThisDay);
+                    topicIndex += topicsForThisDay;
+                    
+                    if (chunk.length > 0) {
+                        const dayData = {
+                            date: currentDate.toISOString().split('T')[0],
+                            blocks: []
+                        };
+                        
+                        let lastSpecialty = null;
+                        chunk.forEach(item => {
+                            if (item.specialty !== lastSpecialty) {
+                                dayData.blocks.push({ subject: item.specialty, topics: [item.topic] });
+                                lastSpecialty = item.specialty;
+                            } else {
+                                dayData.blocks[dayData.blocks.length - 1].topics.push(item.topic);
+                            }
+                        });
+                        plannedDays.push(dayData);
                     } else {
-                        // Esto crea los días vacíos a partir del 7 de julio.
-                        fullPlan.push({ date: dateStr, blocks: [] });
+                         // Si por alguna razón nos quedamos sin temas, llenamos con días vacíos.
+                         plannedDays.push({ date: currentDate.toISOString().split('T')[0], blocks: [] });
                     }
-                    cursorDate.setDate(cursorDate.getDate() + 1);
+
+                    currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+                    dayCounter++;
                 }
-                
-                return fullPlan.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+                // Asegurar que todos los días hasta el final tengan una entrada, aunque sea vacía
+                while (currentDate <= endDate) {
+                    plannedDays.push({ date: currentDate.toISOString().split('T')[0], blocks: [] });
+                    currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+                }
+
+                return plannedDays;
             }
-            
+            // =================================================================================
+            // === FIN DE LA MODIFICACIÓN ===
+            // =================================================================================
+
             function getData(key, defaultValue = null) { const keys = key.split('.'); let result = userProgress; for (const k of keys) { if (result && typeof result === 'object' && k in result) { result = result[k]; } else { return defaultValue; } } return result; }
             function isTopicComplete(topicId) { return ALL_TASK_IDS.every(taskId => getData(`topicData.${topicId}.${taskId}`) === true); }
             
@@ -601,27 +666,40 @@
             function displayDailyQuote() { if (quoteContainer) { const randomIndex = Math.floor(Math.random() * motivationalQuotes.length); quoteContainer.textContent = motivationalQuotes[randomIndex]; } }
             function startCountdown() { if (countdownInterval) clearInterval(countdownInterval); if (!countdownTargetDateStr) return; const targetDate = new Date(`${countdownTargetDateStr}T08:00:00`).getTime(); const daysEl = document.getElementById('countdown-days'); const hoursEl = document.getElementById('countdown-hours'); const minutesEl = document.getElementById('countdown-minutes'); const secondsEl = document.getElementById('countdown-seconds'); const update = () => { const now = new Date().getTime(); const distance = targetDate - now; if (distance < 0) { daysEl.textContent = "000"; hoursEl.textContent = "00"; minutesEl.textContent = "00"; secondsEl.textContent = "00"; clearInterval(countdownInterval); return; } daysEl.textContent = String(Math.floor(distance / (1000 * 60 * 60 * 24))).padStart(3, '0'); hoursEl.textContent = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0'); minutesEl.textContent = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0'); secondsEl.textContent = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, '0'); }; update(); countdownInterval = setInterval(update, 1000); }
             function createTopicListItem(topic) { const topicId = generateTopicId(topic); const isComplete = isTopicComplete(topicId); const liClass = `topic-item ${isComplete ? 'topic-completed' : ''}`; let scoreHTML = ''; const { scorePercentage } = getTopicProgress(topicId); const reactivos = parseInt(getData(`topicData.${topicId}.scoreReactivos`, '0')) || 0; if (reactivos > 0) { const color = getScoreColor(scorePercentage); scoreHTML = `<span class="topic-score" style="color: ${color};">(${scorePercentage.toFixed(1)}%)</span>`; } return `<li class="${liClass}" draggable="true" data-topic-id="${topicId}" data-topic-name="${topic}"><span>${topic}</span>${scoreHTML}</li>`; }
-            function buildSubjectMap() { subjectToTopicsMap.clear(); if (!studyPlan) return; studyPlan.forEach(day => { day.blocks.forEach(block => { if (block.subject) { if (!subjectToTopicsMap.has(block.subject)) { subjectToTopicsMap.set(block.subject, []); } if (block.topics) { const dayTopicIds = block.topics.map(topicName => generateTopicId(topicName)); const topicsForSubject = subjectToTopicsMap.get(block.subject); dayTopicIds.forEach(id => { if (!topicsForSubject.includes(id)) { topicsForSubject.push(id); } }); } } else if (block.topics) { console.warn("Found topics without a subject on date:", day.date, block.topics); } }); }); }
+            function buildSubjectMap() { subjectToTopicsMap.clear(); if (!studyPlan) return; let lastSubject = null; studyPlan.forEach(day => { day.blocks.forEach(block => { if (block.subject) { lastSubject = block.subject; } if (lastSubject) { if (!subjectToTopicsMap.has(lastSubject)) { subjectToTopicsMap.set(lastSubject, []); } if (block.topics) { const dayTopicIds = block.topics.map(topicName => generateTopicId(topicName)); const topicsForSubject = subjectToTopicsMap.get(lastSubject); dayTopicIds.forEach(id => { if (!topicsForSubject.includes(id)) { topicsForSubject.push(id); } }); } } }); }); }
             function calculateSubjectScore(subjectName) { const topicIds = subjectToTopicsMap.get(subjectName); if (!topicIds || topicIds.length === 0) return null; let totalScoreSum = 0; let scoredTopicsCount = 0; topicIds.forEach(topicId => { const reactivos = parseInt(getData(`topicData.${topicId}.scoreReactivos`)) || 0; if (reactivos > 0) { const { scorePercentage } = getTopicProgress(topicId); totalScoreSum += scorePercentage; scoredTopicsCount++; } }); return scoredTopicsCount > 0 ? (totalScoreSum / scoredTopicsCount).toFixed(2) : null; }
-            function updateGlobalProgressBars() { if (!studyPlan) return; buildSubjectMap(); let totalTopics = 0; subjectToTopicsMap.forEach((topics) => { totalTopics += topics.length; }); let completedTopics = 0; subjectToTopicsMap.forEach((topicIds) => { topicIds.forEach(topicId => { if (isTopicComplete(topicId)) { completedTopics++; } }); }); const advancePercentage = totalTopics > 0 ? (completedTopics / totalTopics) * 100 : 0; globalAdvanceBar.style.width = `${advancePercentage}%`; globalAdvanceBar.textContent = `${advancePercentage.toFixed(1)}%`; document.getElementById('global-advance-label').textContent = `Avance Global (${completedTopics}/${totalTopics} Temas)`; let totalSubjectScoreSum = 0; let subjectsWithScoresCount = 0; subjectToTopicsMap.forEach((_, subject) => { const subjectScoreStr = calculateSubjectScore(subject); if (subjectScoreStr !== null) { totalSubjectScoreSum += parseFloat(subjectScoreStr); subjectsWithScoresCount++; }}); const scorePercentage = subjectsWithScoresCount > 0 ? totalSubjectScoreSum / subjectsWithScoresCount : 0; globalScoreBar.style.width = `${scorePercentage}%`; globalScoreBar.textContent = `${scorePercentage.toFixed(1)}%`; }
+            function updateGlobalProgressBars() { if (!studyPlan) return; buildSubjectMap(); let totalTopics = 0; subjectToTopicsMap.forEach((topics) => { totalTopics += topics.length; }); let completedTopics = 0; subjectToTopicsMap.forEach((topicIds) => { topicIds.forEach(topicId => { if (isTopicComplete(topicId)) { completedTopics++; } }); }); const advancePercentage = totalTopics > 0 ? (completedTopics / totalTopics) * 100 : 0; globalAdvanceBar.style.width = `${advancePercentage}%`; globalAdvanceBar.textContent = `${advancePercentage.toFixed(1)}%`; let totalSubjectScoreSum = 0; let subjectsWithScoresCount = 0; subjectToTopicsMap.forEach((_, subject) => { const subjectScoreStr = calculateSubjectScore(subject); if (subjectScoreStr !== null) { totalSubjectScoreSum += parseFloat(subjectScoreStr); subjectsWithScoresCount++; }}); const scorePercentage = subjectsWithScoresCount > 0 ? totalSubjectScoreSum / subjectsWithScoresCount : 0; globalScoreBar.style.width = `${scorePercentage}%`; globalScoreBar.textContent = `${scorePercentage.toFixed(1)}%`; }
             
             function populateCalendar() {
-                if (!studyPlan) { console.error("No study plan to populate."); return; }
+                if (!studyPlan || studyPlan.length === 0) return;
                 buildSubjectMap();
                 const daysMap = new Map(studyPlan.map(day => [day.date, day]));
                 const startDate = new Date(studyPlan[0].date + "T00:00:00");
-                const finalDate = new Date('2025-09-30T00:00:00');
+                const finalDate = new Date(studyPlan[studyPlan.length - 1].date + "T00:00:00");
                 const displayedSubjects = new Set();
-                let dayBeforeTargetStr = '2025-09-22';
+                
+                let dayBeforeTargetStr;
+                if (countdownTargetDateStr) {
+                    let target = new Date(countdownTargetDateStr + "T00:00:00");
+                    target.setDate(target.getDate() - 1);
+                    dayBeforeTargetStr = target.toISOString().split('T')[0];
+                }
                 
                 let weeks = [];
                 let dateCursor = new Date(startDate);
                 dateCursor.setDate(dateCursor.getDate() - dateCursor.getDay());
-                while (dateCursor <= finalDate) {
+                
+                // Ensure the calendar grid covers the entire plan
+                let lastDateInPlan = new Date(finalDate);
+                while (dateCursor <= lastDateInPlan) {
                     let week = [];
-                    for(let i=0; i < 7; i++) { week.push(new Date(dateCursor)); dateCursor.setDate(dateCursor.getDate() + 1); }
+                    for(let i=0; i < 7; i++) { 
+                        week.push(new Date(dateCursor)); 
+                        dateCursor.setDate(dateCursor.getDate() + 1); 
+                    }
                     weeks.push(week);
                 }
+
                 const monthLayout = new Map();
                 weeks.forEach((week, weekIndex) => { const firstDayOfWeek = week[0]; const monthName = firstDayOfWeek.toLocaleString('es-ES', { month: 'long' }); if (!monthLayout.has(monthName)) { monthLayout.set(monthName, { startRow: weekIndex + 2, rowSpan: 1 }); } else { monthLayout.get(monthName).rowSpan++; } });
                 calendarContainer.innerHTML = '';
@@ -629,9 +707,7 @@
                 ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].forEach(day => calendarContainer.innerHTML += `<div class="header-cell day-header">${day}</div>`);
                 monthLayout.forEach((layout, name) => { calendarContainer.innerHTML += `<div class="month-cell" style="grid-row: ${layout.startRow} / span ${layout.rowSpan}">${name}</div>`; });
                 weeks.forEach((week, weekIndex) => {
-                    const weekStartDate = new Date(studyPlan[0].date);
-                    const weekNumber = Math.floor((new Date(week[0]).getTime() - weekStartDate.getTime()) / (7*24*60*60*1000)) + 1;
-                    calendarContainer.innerHTML += `<div class="week-cell-container" style="grid-row: ${weekIndex + 2}"><span class="week-number">${weekNumber > 0 ? weekNumber : ''}</span></div>`;
+                    calendarContainer.innerHTML += `<div class="week-cell-container" style="grid-row: ${weekIndex + 2}"><span class="week-number">${Math.floor(weekIndex * 7 / 7) + 1}</span></div>`;
                     week.forEach(date => {
                         const cell = document.createElement('div');
                         cell.className = 'day-cell';
@@ -642,16 +718,16 @@
                             cell.dataset.date = dateString;
                             cell.innerHTML = `<div class="calendar-day-number">${date.getDate()}</div>`;
                             const dayData = daysMap.get(dateString);
-                            if (dayData && dayData.blocks && dayData.blocks.length > 0) {
+                            if (dayData && dayData.blocks) {
                                 let contentHTML = '<ul>';
                                 dayData.blocks.forEach(block => {
-                                    if (block.subject && !displayedSubjects.has(dayData.date + block.subject)) {
+                                    if (block.subject && !displayedSubjects.has(block.subject + dayData.date)) { // Unique key for subject display
                                         const isComplete = isSubjectComplete(block.subject);
                                         const completedClass = isComplete ? ' subject-completed' : '';
                                         const score = calculateSubjectScore(block.subject);
                                         const scoreText = score !== null ? `<span class="subject-score">(${score}%)</span>` : '';
                                         contentHTML += `<li><span class="subject-title${completedClass}">${block.subject}${scoreText}</span></li>`;
-                                        displayedSubjects.add(dayData.date + block.subject);
+                                        displayedSubjects.add(block.subject + dayData.date);
                                     }
                                     if (block.topics) {
                                         contentHTML += block.topics.map(topic => createTopicListItem(topic)).join('');
@@ -670,9 +746,9 @@
             }
 
             function createSpecialtyHeaderHTML(specialtyName, colorVar) { const specialtyId = generateTopicId(specialtyName); return `<div class="specialty-header" data-specialty-header="${specialtyName}" style="border-left-color: var(${colorVar})"><div class="specialty-header-main"><h3 style="color: var(${colorVar})">${specialtyName}</h3></div><div class="specialty-progress-wrapper"><small>Avance</small><div class="specialty-progress-container"><div class="specialty-progress-bar" id="sp-progress-${specialtyId}"></div></div><span class="specialty-percentage-text" id="sp-progress-text-${specialtyId}">0%</span></div><div class="specialty-progress-wrapper"><small>Nota</small><div class="specialty-progress-container"><div class="specialty-score-bar" id="sp-score-${specialtyId}"></div></div><span class="specialty-percentage-text" id="sp-score-text-${specialtyId}">0%</span></div></div>`; }
-            function populateKanbanBoard() { todoContainer.innerHTML = ''; inprogressContainer.innerHTML = ''; doneContainer.innerHTML = ''; const specialtyColors = ['--step-1-color', '--step-2-color', '--step-3-color', '--step-4-color', '--step-5-color', '--step-6-color', '#c0392b', '#8e44ad', '#2c3e50', '#16a085', '#d35400', '#2980b9']; let colorIndex = 0; const allSpecialties = {}; buildSubjectMap(); subjectToTopicsMap.forEach((topicIds, specialtyName) => { const topicNames = topicIds.map(id => { for (const day of studyPlan) { for (const block of day.blocks) { if (block.topics) { const foundTopic = block.topics.find(t => generateTopicId(t) === id); if (foundTopic) return foundTopic; } } } return null; }).filter(Boolean); if (topicNames.length > 0) { allSpecialties[specialtyName] = { topics: topicNames, color: specialtyColors[colorIndex % specialtyColors.length] }; colorIndex++; } }); for (const specialtyName in allSpecialties) { const specialtyData = allSpecialties[specialtyName]; const headerHTML = createSpecialtyHeaderHTML(specialtyName, specialtyData.color); const specialtyFragments = { todo: document.createDocumentFragment(), inprogress: document.createDocumentFragment(), done: document.createDocumentFragment() }; specialtyData.topics.forEach(topicName => { const topicId = generateTopicId(topicName); const state = getTopicKanbanState(topicId); const cardHTML = createKanbanCardHTML(topicName, topicId, specialtyName); const cardElement = document.createElement('div'); cardElement.innerHTML = cardHTML; specialtyFragments[state].appendChild(cardElement.firstChild); }); if (specialtyFragments.todo.hasChildNodes()) { todoContainer.innerHTML += headerHTML; todoContainer.appendChild(specialtyFragments.todo); } if (specialtyFragments.inprogress.hasChildNodes()) { inprogressContainer.innerHTML += headerHTML; inprogressContainer.appendChild(specialtyFragments.inprogress); } if (specialtyFragments.done.hasChildNodes()) { doneContainer.innerHTML += headerHTML; doneContainer.appendChild(specialtyFragments.done); } } updateAllSpecialtyProgressOnBoard(); }
+            function populateKanbanBoard() { todoContainer.innerHTML = ''; inprogressContainer.innerHTML = ''; doneContainer.innerHTML = ''; const specialtyColors = ['--step-1-color', '--step-2-color', '--step-3-color', '--step-4-color', '--step-5-color', '--step-6-color']; let colorIndex = 0; const allSpecialties = {}; buildSubjectMap(); subjectToTopicsMap.forEach((topicIds, specialtyName) => { const topicNames = topicIds.map(id => { for (const day of studyPlan) { for (const block of day.blocks) { if (block.topics) { const foundTopic = block.topics.find(t => generateTopicId(t) === id); if (foundTopic) return foundTopic; } } } return null; }).filter(Boolean); if (topicNames.length > 0) { allSpecialties[specialtyName] = { topics: topicNames, color: specialtyColors[colorIndex % specialtyColors.length] }; colorIndex++; } }); for (const specialtyName in allSpecialties) { const specialtyData = allSpecialties[specialtyName]; const headerHTML = createSpecialtyHeaderHTML(specialtyName, specialtyData.color); const specialtyFragments = { todo: document.createDocumentFragment(), inprogress: document.createDocumentFragment(), done: document.createDocumentFragment() }; specialtyData.topics.forEach(topicName => { const topicId = generateTopicId(topicName); const state = getTopicKanbanState(topicId); const cardHTML = createKanbanCardHTML(topicName, topicId, specialtyName); const cardElement = document.createElement('div'); cardElement.innerHTML = cardHTML; specialtyFragments[state].appendChild(cardElement.firstChild); }); if (specialtyFragments.todo.hasChildNodes()) { todoContainer.innerHTML += headerHTML; todoContainer.appendChild(specialtyFragments.todo); } if (specialtyFragments.inprogress.hasChildNodes()) { inprogressContainer.innerHTML += headerHTML; inprogressContainer.appendChild(specialtyFragments.inprogress); } if (specialtyFragments.done.hasChildNodes()) { doneContainer.innerHTML += headerHTML; doneContainer.appendChild(specialtyFragments.done); } } updateAllSpecialtyProgressOnBoard(); }
             function createKanbanCardHTML(topicName, topicId, specialtyName) { const { completionPercentage, scorePercentage } = getTopicProgress(topicId); const scoreColor = getScoreColor(scorePercentage); const state = getTopicKanbanState(topicId); let statusColorVar = '--color-todo'; if (state === 'inprogress') statusColorVar = '--color-inprogress'; if (state === 'done') statusColorVar = '--color-done'; return `<article class="kanban-card" data-topic-id="${topicId}" data-topic-name="${topicName}" data-specialty="${specialtyName}" style="border-left: 4px solid var(${statusColorVar});"><div class="card-summary"><div class="card-topic-name">${topicName}</div><div class="card-progress-display"><div class="card-progress-bar-container"><div class="card-progress-bar" style="width: ${completionPercentage}%; background-color: var(${statusColorVar});"></div></div><span class="card-progress-text">${completionPercentage.toFixed(0)}%</span><span class="card-score-text" style="color: ${scoreColor}">${scorePercentage.toFixed(0)}%</span></div></div></article>`; }
-            function showDayModal(dateString) { const dayData = studyPlan.find(d => d.date === dateString); const date = new Date(dateString + "T00:00:00"); dayModalTitle.textContent = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }); let topicsHTML = '<ul>'; if (dayData && dayData.blocks) { dayData.blocks.forEach(block => { if (block.subject) { const score = calculateSubjectScore(block.subject); const scoreText = score !== null ? `<span class="subject-score">(${score}%)</span>` : ''; topicsHTML += `<li><span class="subject-title">${block.subject}${scoreText}</span></li>`; } if(block.topics) { topicsHTML += block.topics.map(topic => createTopicListItem(topic)).join(''); } }); } topicsHTML += '</ul>'; dayModalNotes.value = getData(`dayNotes.${dateString}`, ''); dayModalTopicsContainer.innerHTML = topicsHTML; dayModal.dataset.currentDate = dateString; dayModalOverlay.classList.add('visible'); dayModal.classList.add('visible'); }
+            function showDayModal(dateString) { const dayData = studyPlan.find(d => d.date === dateString); const date = new Date(dateString + "T00:00:00"); dayModalTitle.textContent = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }); let topicsHTML = '<ul>'; if (dayData && dayData.blocks) { dayData.blocks.forEach(block => { if (block.subject) { const score = calculateSubjectScore(block.subject); const scoreText = score !== null ? `<span class="subject-score">(${score}%)</span>` : ''; topicsHTML += `<li><span class="subject-title">${block.subject}${scoreText}</span></li>`; } if(block.topics) { topicsHTML += block.topics.map(topic => createTopicListItem(topic)).join(''); } }); } topicsHTML += '</ul>'; dayModalTopicsContainer.innerHTML = topicsHTML; dayModalNotes.value = getData(`dayNotes.${dateString}`, ''); dayModal.dataset.currentDate = dateString; dayModalOverlay.classList.add('visible'); dayModal.classList.add('visible'); }
             function closeDayModal() { dayModalOverlay.classList.remove('visible'); dayModal.classList.remove('visible'); }
             function saveDayNote() { const dateString = dayModal.dataset.currentDate; if (dateString) { saveData(`dayNotes.${dateString}`, dayModalNotes.value); } closeDayModal(); }
             function showTopicPlan(topicId, topicName) { topicModal.dataset.currentTopicId = topicId; topicModalTitle.textContent = topicName; loadTopicState(topicId); topicModalOverlay.classList.add('visible'); topicModal.classList.add('visible'); }
@@ -693,32 +769,39 @@
                 assignDOMelements();
                 displayDailyQuote();
 
+                // --- INICIO DE LÓGICA DE AUTENTICACIÓN ---
                 const authBtn = document.getElementById('auth-btn');
                 const userDisplay = document.getElementById('user-display');
 
                 auth.onAuthStateChanged(user => {
                     if (user) {
+                        // El usuario ha iniciado sesión
                         currentUser = user;
                         userDisplay.textContent = `Hola, ${user.displayName.split(' ')[0]}`;
                         userDisplay.style.display = 'inline';
                         authBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
                         authBtn.style.backgroundColor = 'var(--error-color)';
                         
+                        // ¡Punto clave! Cargamos los datos del usuario desde la nube
                         loadProgressFromFirestore(); 
                     } else {
+                        // El usuario ha cerrado sesión
                         currentUser = null;
                         userDisplay.style.display = 'none';
                         authBtn.innerHTML = '<i class="fab fa-google" style="margin-right: 8px;"></i> Login';
                         authBtn.style.backgroundColor = '#4A90E2';
                         
+                        // Opcional: Limpiar la interfaz o mostrar un mensaje
                         calendarContainer.innerHTML = '<h2 style="text-align:center; padding: 40px;">Inicia sesión para ver y guardar tu progreso.</h2>';
                     }
                 });
 
                 authBtn.addEventListener('click', () => {
                     if (currentUser) {
+                        // Si hay un usuario, el botón hace logout
                         auth.signOut();
                     } else {
+                        // Si no, el botón hace login con Google
                         const provider = new firebase.auth.GoogleAuthProvider();
                         auth.signInWithPopup(provider).catch(error => {
                             console.error("Error durante el login:", error);
@@ -726,7 +809,9 @@
                         });
                     }
                 });
+                // --- FIN DE LÓGICA DE AUTENTICACIÓN ---
                 
+                // --- El resto de los event listeners ---
                 viewSwitcher.addEventListener('click', switchView);
                 boardView.addEventListener('click', e => { const card = e.target.closest('.kanban-card'); if (card) { const { topicId, topicName } = card.dataset; showTopicPlan(topicId, topicName); }});
                 calendarContainer.addEventListener('click', e => { const topicLi = e.target.closest('.topic-item'); if (topicLi && !draggedItem) { const { topicId, topicName } = topicLi.dataset; showTopicPlan(topicId, topicName); return; } const cell = e.target.closest('.day-cell:not(.empty)'); if (cell) showDayModal(cell.dataset.date); });
@@ -745,7 +830,7 @@
                 calendarContainer.addEventListener('dragstart', e => { if (e.target.classList.contains('topic-item')) { draggedItem = e.target; const topicName = draggedItem.dataset.topicName; const subjectTitle = getSubjectForTopic(topicName); e.dataTransfer.setData('application/json', JSON.stringify({ topicName: topicName, sourceSubject: subjectTitle })); setTimeout(() => e.target.classList.add('dragging'), 0); } });
                 calendarContainer.addEventListener('dragend', e => { if (draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; clearDragStyles(); } });
                 calendarContainer.addEventListener('dragover', e => { e.preventDefault(); const targetCell = e.target.closest('.day-cell:not(.empty)'); if (!targetCell || !draggedItem) { clearDragStyles(); return; } const sourceDate = draggedItem.closest('.day-cell').dataset.date; const targetDate = targetCell.dataset.date; clearDragStyles(); if (sourceDate === targetDate) { const targetTopic = e.target.closest('.topic-item'); if (targetTopic && targetTopic !== draggedItem) { lastDragOverTopic = targetTopic; const rect = targetTopic.getBoundingClientRect(); const midpointY = rect.top + rect.height / 2; if (e.clientY < midpointY) { targetTopic.classList.add('drag-over-top'); } else { targetTopic.classList.add('drag-over-bottom'); } } } else { lastDragOverCell = targetCell; targetCell.classList.add('drag-over'); } });
-                calendarContainer.addEventListener('drop', e => { e.preventDefault(); if (!draggedItem) return; const targetCell = e.target.closest('.day-cell'); if (!targetCell || targetCell.classList.contains('empty')) { clearDragStyles(); return; } const sourceCell = draggedItem.closest('.day-cell'); const sourceDate = sourceCell.dataset.date; const targetDate = targetCell.dataset.date; const { topicName, sourceSubject } = JSON.parse(e.dataTransfer.getData('application/json')); const sourceDay = studyPlan.find(d => d.date === sourceDate); if (!sourceDay) return; let removed = false; sourceDay.blocks.forEach(block => { if (block.topics) { const topicIndex = block.topics.indexOf(topicName); if (topicIndex > -1) { block.topics.splice(topicIndex, 1); removed = true; } } }); if (!removed) return; let targetDay = studyPlan.find(d => d.date === targetDate); if (!targetDay) { targetDay = { date: targetDate, blocks: [{ topics: [] }] }; studyPlan.push(targetDay); } let targetBlock = targetDay.blocks.find(b => getSubjectForTopic(b.topics?.[0]) === sourceSubject || b.subject === sourceSubject); if (!targetBlock) { targetBlock = { subject: sourceSubject, topics: [] }; targetDay.blocks.unshift(targetBlock); } const targetTopicEl = e.target.closest('.topic-item'); if (targetTopicEl && sourceDate === targetDate) { const targetTopicName = targetTopicEl.dataset.topicName; const rect = targetTopicEl.getBoundingClientRect(); const midpointY = rect.top + rect.height / 2; const insertBefore = e.clientY < midpointY; const targetIndex = targetBlock.topics.indexOf(targetTopicName); targetBlock.topics.splice(insertBefore ? targetIndex : targetIndex + 1, 0, topicName); } else { targetBlock.topics.push(topicName); } studyPlan.forEach(day => { day.blocks = day.blocks.filter(block => block.topics && block.topics.length > 0); }); studyPlan = studyPlan.filter(day => day.blocks.length > 0 && day.blocks.some(b => (b.topics && b.topics.length > 0))); studyPlan.sort((a, b) => new Date(a.date) - new Date(b.date)); clearDragStyles(); saveData('studyPlan', studyPlan); populateCalendar(); });
+                calendarContainer.addEventListener('drop', e => { e.preventDefault(); if (!draggedItem) return; const targetCell = e.target.closest('.day-cell'); if (!targetCell || targetCell.classList.contains('empty')) { clearDragStyles(); return; } const sourceCell = draggedItem.closest('.day-cell'); const sourceDate = sourceCell.dataset.date; const targetDate = targetCell.dataset.date; const { topicName, sourceSubject } = JSON.parse(e.dataTransfer.getData('application/json')); const sourceDay = studyPlan.find(d => d.date === sourceDate); if (!sourceDay) return; let removed = false; sourceDay.blocks.forEach(block => { if (block.topics) { const topicIndex = block.topics.indexOf(topicName); if (topicIndex > -1) { block.topics.splice(topicIndex, 1); removed = true; } } }); if (!removed) return; let targetDay = studyPlan.find(d => d.date === targetDate); if (!targetDay) { targetDay = { date: targetDate, blocks: [{ topics: [] }] }; studyPlan.push(targetDay); } let targetBlock = targetDay.blocks.find(b => getSubjectForTopic(b.topics?.[0]) === sourceSubject || b.subject === sourceSubject); if (!targetBlock) { targetBlock = { topics: [] }; targetDay.blocks.unshift(targetBlock); } const targetTopicEl = e.target.closest('.topic-item'); if (targetTopicEl && sourceDate === targetDate) { const targetTopicName = targetTopicEl.dataset.topicName; const rect = targetTopicEl.getBoundingClientRect(); const midpointY = rect.top + rect.height / 2; const insertBefore = e.clientY < midpointY; const targetIndex = targetBlock.topics.indexOf(targetTopicName); targetBlock.topics.splice(insertBefore ? targetIndex : targetIndex + 1, 0, topicName); } else { targetBlock.topics.push(topicName); } studyPlan.forEach(day => { day.blocks = day.blocks.filter(block => (block.subject && block.topics && block.topics.length > 0) || (!block.subject && block.topics && block.topics.length > 0) || (block.subject && !block.topics)); }); studyPlan = studyPlan.filter(day => day.blocks.length > 0 && day.blocks.some(b => (b.topics && b.topics.length > 0) || b.subject)); studyPlan.sort((a, b) => new Date(a.date) - new Date(b.date)); clearDragStyles(); saveData('studyPlan', studyPlan); populateCalendar(); });
             }
             
             main();
